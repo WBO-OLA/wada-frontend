@@ -1,0 +1,105 @@
+export type BudgetStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED';
+export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+
+export const BUDGET_STATUS_LABELS: Record<BudgetStatus, string> = {
+  DRAFT: 'Draft',
+  ACTIVE: 'Active',
+  CLOSED: 'Closed',
+};
+
+export const EXPENSE_STATUS_LABELS: Record<ExpenseStatus, string> = {
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  CANCELLED: 'Cancelled',
+};
+
+export interface Budget {
+  id?: number;
+  name: string;
+  fiscalYear: number;
+  totalAmount: number;
+  allocatedAmount: number;
+  remainingAmount?: number;
+  department?: string;
+  description?: string;
+  status: BudgetStatus;
+  createdBy?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Expense {
+  id?: number;
+  title: string;
+  description?: string;
+  amount: number;
+  category?: string;
+  budget?: { id: number; name: string };
+  status: ExpenseStatus;
+  submittedBy?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
+  reference?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface Income {
+  id?: number;
+  title: string;
+  amount: number;
+  source?: string;
+  category?: string;
+  receivedDate?: string;
+  reference?: string;
+  recordedBy?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface ExpenseApprovalRequest {
+  approvedBy: string;
+  rejectionReason?: string;
+  notes?: string;
+}
+
+export type LedgerEntryType =
+  | 'BUDGET_CREATED' | 'BUDGET_ACTIVATED' | 'BUDGET_CLOSED'
+  | 'EXPENSE_SUBMITTED' | 'EXPENSE_APPROVED' | 'EXPENSE_REJECTED'
+  | 'INCOME_RECEIVED';
+
+export interface LedgerEntry {
+  id: number;
+  type: LedgerEntryType;
+  amount: number;
+  description: string;
+  relatedEntityType?: string;
+  relatedEntityId?: number;
+  createdBy?: string;
+  createdAt: string;
+}
+
+export const LEDGER_TYPE_LABELS: Record<LedgerEntryType, string> = {
+  BUDGET_CREATED: 'Budget Created',
+  BUDGET_ACTIVATED: 'Budget Activated',
+  BUDGET_CLOSED: 'Budget Closed',
+  EXPENSE_SUBMITTED: 'Expense Submitted',
+  EXPENSE_APPROVED: 'Expense Approved',
+  EXPENSE_REJECTED: 'Expense Rejected',
+  INCOME_RECEIVED: 'Income Received',
+};
+
+export const LEDGER_TYPE_COLORS: Record<LedgerEntryType, string> = {
+  BUDGET_CREATED: 'bg-blue-100 text-blue-700',
+  BUDGET_ACTIVATED: 'bg-indigo-100 text-indigo-700',
+  BUDGET_CLOSED: 'bg-gray-100 text-gray-600',
+  EXPENSE_SUBMITTED: 'bg-yellow-100 text-yellow-700',
+  EXPENSE_APPROVED: 'bg-red-100 text-red-700',
+  EXPENSE_REJECTED: 'bg-red-50 text-red-500',
+  INCOME_RECEIVED: 'bg-green-100 text-green-700',
+};

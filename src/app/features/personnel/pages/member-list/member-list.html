@@ -1,0 +1,64 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Personnel</h1>
+    <a routerLink="new"
+       class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
+      + Register Member
+    </a>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-4 border-b border-gray-100">
+      <select [(ngModel)]="statusFilter" (ngModelChange)="load()"
+              class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+        <option value="">All statuses</option>
+        @for (s of statusOptions; track s) {
+          <option [value]="s">{{ statusLabels[s] }}</option>
+        }
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="p-12 text-center text-gray-400 text-sm">Loading members...</div>
+    } @else if (members().length === 0) {
+      <div class="p-12 text-center text-gray-400 text-sm">No members found.</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider">
+            <tr>
+              <th class="px-6 py-3 text-left">Military ID</th>
+              <th class="px-6 py-3 text-left">Name</th>
+              <th class="px-6 py-3 text-left">Rank</th>
+              <th class="px-6 py-3 text-left">Unit</th>
+              <th class="px-6 py-3 text-left">Status</th>
+              <th class="px-6 py-3 text-left">Joined</th>
+              <th class="px-6 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (m of members(); track m.id) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 font-mono text-xs text-gray-600">{{ m.militaryId }}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ m.firstName }} {{ m.lastName }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ rankLabels[m.rank] }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ m.unit }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ statusColors[m.status] }}">
+                    {{ statusLabels[m.status] }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-gray-500">{{ m.dateJoined ?? '—' }}</td>
+                <td class="px-6 py-4 text-right space-x-3">
+                  <a [routerLink]="[m.id]" class="text-blue-600 hover:underline">View</a>
+                  <a [routerLink]="[m.id, 'edit']" class="text-gray-600 hover:underline">Edit</a>
+                  <button (click)="delete(m.id!)" class="text-red-500 hover:underline">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

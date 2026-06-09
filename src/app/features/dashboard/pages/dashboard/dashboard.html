@@ -1,0 +1,60 @@
+<div>
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Members</p>
+      <p class="text-3xl font-bold text-gray-900 mt-2">{{ totalMembers() }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Active</p>
+      <p class="text-3xl font-bold text-green-600 mt-2">{{ activeMembers() }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">New Joiners</p>
+      <p class="text-3xl font-bold text-blue-600 mt-2">{{ newJoiners() }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Injured</p>
+      <p class="text-3xl font-bold text-yellow-600 mt-2">{{ injuredMembers() }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-800">Personnel Summary</h2>
+        <a routerLink="/personnel" class="text-sm text-blue-600 hover:underline">View all →</a>
+      </div>
+      <div class="space-y-2 text-sm text-gray-600">
+        <div class="flex justify-between">
+          <span>Total members</span><span class="font-medium text-gray-900">{{ totalMembers() }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Active</span><span class="font-medium text-green-700">{{ activeMembers() }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>New joiners</span><span class="font-medium text-blue-700">{{ newJoiners() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-800">Inventory Summary</h2>
+        <a routerLink="/inventory" class="text-sm text-blue-600 hover:underline">View all →</a>
+      </div>
+      <div class="space-y-2 text-sm text-gray-600">
+        <div class="flex justify-between">
+          <span>Total items</span><span class="font-medium text-gray-900">{{ totalItems() }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Low stock items</span>
+          <span class="font-medium" [class]="lowStockItems() > 0 ? 'text-red-600' : 'text-gray-900'">
+            {{ lowStockItems() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

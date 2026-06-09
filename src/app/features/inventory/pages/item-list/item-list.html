@@ -1,0 +1,54 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Inventory</h1>
+    <div class="flex gap-2">
+      <a routerLink="stock"
+         class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Stock Movement
+      </a>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    @if (loading()) {
+      <div class="p-12 text-center text-gray-400 text-sm">Loading items...</div>
+    } @else if (items().length === 0) {
+      <div class="p-12 text-center text-gray-400 text-sm">No items found.</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider">
+            <tr>
+              <th class="px-6 py-3 text-left">SKU</th>
+              <th class="px-6 py-3 text-left">Name</th>
+              <th class="px-6 py-3 text-left">Category</th>
+              <th class="px-6 py-3 text-left">Warehouse</th>
+              <th class="px-6 py-3 text-right">Quantity</th>
+              <th class="px-6 py-3 text-right">Unit Price</th>
+              <th class="px-6 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (item of items(); track item.id) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 font-mono text-xs text-gray-600">{{ item.sku }}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ item.name }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ item.category ?? '—' }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ item.warehouse?.name ?? '—' }}</td>
+                <td class="px-6 py-4 text-right">
+                  <span [class]="item.quantity < 10 ? 'text-red-600 font-semibold' : 'text-gray-900'">
+                    {{ item.quantity }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right text-gray-700">{{ item.unitPrice | currency }}</td>
+                <td class="px-6 py-4 text-right space-x-3">
+                  <button (click)="delete(item.id!)" class="text-red-500 hover:underline">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

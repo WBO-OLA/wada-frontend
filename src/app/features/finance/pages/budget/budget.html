@@ -1,0 +1,159 @@
+<div>
+  <!-- Finance tab nav -->
+  <div class="flex gap-4 mb-6 border-b border-gray-200">
+    <a routerLink="/finance/budget" routerLinkActive="border-slate-900 text-slate-900"
+       class="pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Budget
+    </a>
+    <a routerLink="/finance/expenses" routerLinkActive="border-slate-900 text-slate-900"
+       class="pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Expenses
+    </a>
+    <a routerLink="/finance/income" routerLinkActive="border-slate-900 text-slate-900"
+       class="pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Income
+    </a>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Budgets</h1>
+    <button (click)="showForm.set(!showForm())"
+            class="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
+      {{ showForm() ? 'Cancel' : '+ New Budget' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ success() }}</div>
+  }
+
+  <!-- Create budget form -->
+  @if (showForm()) {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">New Budget</h2>
+      <form [formGroup]="form" (ngSubmit)="submitBudget()" class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Budget Name *</label>
+          <input formControlName="name" type="text" placeholder="e.g. Operations FY2026"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Fiscal Year *</label>
+          <input formControlName="fiscalYear" type="number" min="2000"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Total Amount *</label>
+          <input formControlName="totalAmount" type="number" min="1" placeholder="0.00"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Department</label>
+          <input formControlName="department" type="text" placeholder="e.g. Logistics"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Created By</label>
+          <input formControlName="createdBy" type="text"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+          <input formControlName="notes" type="text"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div class="col-span-2 flex justify-end gap-3 pt-2">
+          <button type="button" (click)="showForm.set(false)"
+                  class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="form.invalid || saving()"
+                  class="px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors">
+            {{ saving() ? 'Creating...' : 'Create Budget' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Budget list -->
+  @if (loading()) {
+    <div class="text-center py-10 text-gray-400 text-sm">Loading budgets...</div>
+  } @else if (budgets().length === 0) {
+    <div class="bg-white rounded-xl p-10 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
+      No budgets yet. Create one to get started.
+    </div>
+  } @else {
+    <div class="space-y-4">
+      @for (budget of budgets(); track budget.id) {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h3 class="font-semibold text-gray-900">{{ budget.name }}</h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                FY{{ budget.fiscalYear }}
+                @if (budget.department) { · {{ budget.department }} }
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(budget.status) }}">
+                {{ statusLabels[budget.status] }}
+              </span>
+              @if (budget.status === 'DRAFT') {
+                <button (click)="startApprove(budget.id!)"
+                        class="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  Activate
+                </button>
+              }
+              @if (budget.status === 'ACTIVE') {
+                <button (click)="closeBudget(budget.id!)"
+                        class="text-xs px-3 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors">
+                  Close
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Budget bar -->
+          <div class="mt-3">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Allocated: {{ budget.allocatedAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span>Total: {{ budget.totalAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="h-2 rounded-full transition-all"
+                   [style.width.%]="usedPercent(budget)"
+                   [class]="usedPercent(budget) >= 90 ? 'bg-red-500' : 'bg-green-500'">
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">{{ usedPercent(budget) }}% used</p>
+          </div>
+
+          <!-- Activate approval form -->
+          @if (approvingId() === budget.id) {
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <form [formGroup]="approveForm" (ngSubmit)="submitActivate(budget.id!)" class="flex gap-3 items-end">
+                <div class="flex-1">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Approved By *</label>
+                  <input formControlName="approvedBy" type="text" placeholder="Authorizing officer name"
+                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                </div>
+                <button type="button" (click)="approvingId.set(null)"
+                        class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" [disabled]="approveForm.invalid || saving()"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors">
+                  Confirm
+                </button>
+              </form>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

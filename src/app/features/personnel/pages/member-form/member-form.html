@@ -1,0 +1,106 @@
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a routerLink="/personnel" class="text-gray-400 hover:text-gray-600 text-sm">← Personnel</a>
+    <span class="text-gray-300">/</span>
+    <h1 class="text-xl font-bold text-gray-900">{{ isEdit() ? 'Edit Member' : 'Register Member' }}</h1>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Military ID *</label>
+        <input formControlName="militaryId" type="text" placeholder="e.g. MIL-2024-001"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">National ID</label>
+        <input formControlName="nationalId" type="text"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">First Name *</label>
+        <input formControlName="firstName" type="text"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Last Name *</label>
+        <input formControlName="lastName" type="text"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Phone</label>
+        <input formControlName="phone" type="tel"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Email</label>
+        <input formControlName="email" type="email"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
+        <input formControlName="dateOfBirth" type="date"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Date Joined</label>
+        <input formControlName="dateJoined" type="date"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Rank *</label>
+        <select formControlName="rank"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
+          @for (r of ranks; track r) {
+            <option [value]="r">{{ rankLabels[r] }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Unit *</label>
+        <input formControlName="unit" type="text" placeholder="e.g. Alpha Company"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-700 mb-1">Status *</label>
+      <select formControlName="status"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ statusLabels[s] }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+      <textarea formControlName="notes" rows="3"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"></textarea>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit" [disabled]="form.invalid || saving()"
+              class="px-5 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors">
+        {{ saving() ? 'Saving...' : (isEdit() ? 'Save Changes' : 'Register Member') }}
+      </button>
+      <a routerLink="/personnel"
+         class="px-5 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>

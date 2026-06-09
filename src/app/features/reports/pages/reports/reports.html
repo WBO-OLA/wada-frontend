@@ -1,0 +1,188 @@
+<div>
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Reports</h1>
+      @if (lastRefreshed()) {
+        <p class="text-xs text-gray-400 mt-0.5">Last refreshed: {{ lastRefreshed() | date:'medium' }}</p>
+      }
+    </div>
+    <button (click)="load()" [disabled]="loading()"
+            class="px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors">
+      {{ loading() ? 'Loading...' : '↻ Refresh' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading() && !report()) {
+    <div class="text-center py-20 text-gray-400 text-sm">Loading dashboard report...</div>
+  }
+
+  @if (report(); as r) {
+    <div class="space-y-6">
+
+      <!-- Personnel -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+          Personnel
+        </h2>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-2xl font-bold text-gray-900">{{ r.personnel?.totalMembers ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Members</p>
+          </div>
+          <div class="text-center p-3 bg-green-50 rounded-lg">
+            <p class="text-2xl font-bold text-green-700">{{ r.personnel?.active ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Active</p>
+          </div>
+          <div class="text-center p-3 bg-yellow-50 rounded-lg">
+            <p class="text-2xl font-bold text-yellow-700">{{ r.personnel?.injured ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Injured</p>
+          </div>
+          <div class="text-center p-3 bg-blue-50 rounded-lg">
+            <p class="text-2xl font-bold text-blue-700">{{ r.personnel?.newJoiners ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">New Joiners</p>
+          </div>
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-2xl font-bold text-gray-600">{{ r.personnel?.retired ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Retired</p>
+          </div>
+          <div class="text-center p-3 bg-red-50 rounded-lg">
+            <p class="text-2xl font-bold text-red-700">{{ r.personnel?.passedAway ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Passed Away</p>
+          </div>
+        </div>
+
+        @if (r.personnel?.byUnit && topEntries(r.personnel.byUnit).length > 0) {
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Members by Unit</p>
+            <div class="space-y-2">
+              @for (entry of topEntries(r.personnel.byUnit); track entry[0]) {
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-gray-600 w-32 truncate">{{ entry[0] }}</span>
+                  <div class="flex-1 bg-gray-100 rounded-full h-2">
+                    <div class="bg-blue-500 h-2 rounded-full transition-all"
+                         [style.width.%]="barWidth(entry[1], r.personnel!.totalMembers)"></div>
+                  </div>
+                  <span class="text-xs text-gray-500 w-6 text-right">{{ entry[1] }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Inventory -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+          Inventory
+        </h2>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-2xl font-bold text-gray-900">{{ r.inventory?.totalItems ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Items</p>
+          </div>
+          <div class="text-center p-3 bg-emerald-50 rounded-lg">
+            <p class="text-2xl font-bold text-emerald-700">{{ r.inventory?.activeWarehouses ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Active Warehouses</p>
+          </div>
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-2xl font-bold text-gray-700">{{ r.inventory?.totalWarehouses ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Warehouses</p>
+          </div>
+          <div class="text-center p-3 bg-yellow-50 rounded-lg">
+            <p class="text-2xl font-bold text-yellow-700">{{ r.inventory?.lowStockCount ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Low Stock</p>
+          </div>
+          <div class="text-center p-3 bg-red-50 rounded-lg">
+            <p class="text-2xl font-bold text-red-700">{{ r.inventory?.outOfStockCount ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Out of Stock</p>
+          </div>
+          <div class="text-center p-3 bg-slate-50 rounded-lg">
+            <p class="text-lg font-bold text-slate-700">{{ (r.inventory?.totalStockValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Stock Value</p>
+          </div>
+        </div>
+
+        @if (r.inventory?.byCategory && topEntries(r.inventory.byCategory).length > 0) {
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Items by Category</p>
+            <div class="space-y-2">
+              @for (entry of topEntries(r.inventory.byCategory); track entry[0]) {
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-gray-600 w-32 truncate">{{ entry[0] }}</span>
+                  <div class="flex-1 bg-gray-100 rounded-full h-2">
+                    <div class="bg-emerald-500 h-2 rounded-full transition-all"
+                         [style.width.%]="barWidth(entry[1], r.inventory!.totalItems)"></div>
+                  </div>
+                  <span class="text-xs text-gray-500 w-6 text-right">{{ entry[1] }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Finance -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-violet-500 inline-block"></span>
+          Finance
+        </h2>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="text-center p-3 bg-violet-50 rounded-lg">
+            <p class="text-lg font-bold text-violet-700">{{ (r.finance?.totalBudgetAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Budget</p>
+          </div>
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-lg font-bold text-gray-700">{{ (r.finance?.totalAllocatedAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Allocated</p>
+          </div>
+          <div class="text-center p-3 bg-green-50 rounded-lg">
+            <p class="text-lg font-bold text-green-700">{{ (r.finance?.totalIncomeAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Income</p>
+          </div>
+          <div class="text-center p-3 bg-yellow-50 rounded-lg">
+            <p class="text-2xl font-bold text-yellow-700">{{ r.finance?.pendingExpenses ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Pending Expenses</p>
+          </div>
+          <div class="text-center p-3 bg-emerald-50 rounded-lg">
+            <p class="text-2xl font-bold text-emerald-700">{{ r.finance?.approvedExpenses ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Approved Expenses</p>
+          </div>
+          <div class="text-center p-3 bg-blue-50 rounded-lg">
+            <p class="text-2xl font-bold text-blue-700">{{ r.finance?.activeBudgets ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Active Budgets</p>
+          </div>
+        </div>
+
+        <!-- Budget utilization bar -->
+        @if (r.finance?.totalBudgetAmount) {
+          <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Budget Utilization</span>
+              <span>{{ budgetUtilPct(r.finance) }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-3">
+              <div class="h-3 rounded-full transition-all"
+                   [style.width.%]="budgetUtilPct(r.finance)"
+                   [class]="budgetUtilPct(r.finance) >= 90 ? 'bg-red-500' : budgetUtilPct(r.finance) >= 70 ? 'bg-amber-500' : 'bg-violet-500'">
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>Allocated: {{ (r.finance.totalAllocatedAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span>Total: {{ (r.finance.totalBudgetAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</div>
