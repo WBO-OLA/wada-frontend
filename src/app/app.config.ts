@@ -5,12 +5,17 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
+import { mockInterceptor } from './core/interceptors/mock-interceptor';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([
+      ...(environment.mockMode ? [mockInterceptor] : []),
+      authInterceptor,
+    ])),
     provideAnimationsAsync(),
   ]
 };
