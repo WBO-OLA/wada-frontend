@@ -12,7 +12,6 @@ import { ItemService } from '../../../inventory/services/item.service';
 export class Dashboard implements OnInit {
   totalMembers = signal(0);
   activeMembers = signal(0);
-  newJoiners = signal(0);
   injuredMembers = signal(0);
   totalItems = signal(0);
   lowStockItems = signal(0);
@@ -26,7 +25,6 @@ export class Dashboard implements OnInit {
     this.memberService.getAll().subscribe(members => {
       this.totalMembers.set(members.length);
       this.activeMembers.set(members.filter(m => m.status === 'ACTIVE').length);
-      this.newJoiners.set(members.filter(m => m.status === 'NEW_JOINER').length);
       this.injuredMembers.set(members.filter(m => m.status === 'INJURED').length);
     });
     this.itemService.getAll().subscribe(items => this.totalItems.set(items.length));

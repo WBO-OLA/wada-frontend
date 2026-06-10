@@ -39,7 +39,7 @@
         </div>
         <div>
           <p class="text-xs text-gray-500">Date Joined</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.dateJoined ?? '—' }}</p>
+          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.joinDate ?? '—' }}</p>
         </div>
         <div>
           <p class="text-xs text-gray-500">Date of Birth</p>
@@ -60,6 +60,93 @@
           </div>
         }
       </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex justify-between items-center mb-1">
+        <button (click)="showActivities.set(!showActivities())"
+                class="flex-1 flex justify-between items-center text-sm font-semibold text-gray-900">
+          <span>Activity Timeline <span class="text-gray-400 font-normal">({{ activities().length }})</span></span>
+          <span class="text-gray-400 text-xs">{{ showActivities() ? '▲ Collapse' : '▼ Expand' }}</span>
+        </button>
+        @if (showActivities()) {
+          <button (click)="showActivityForm.set(!showActivityForm())"
+                  class="ml-4 text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
+            {{ showActivityForm() ? 'Cancel' : '+ Add' }}
+          </button>
+        }
+      </div>
+
+      @if (showActivities()) {
+        @if (activityError()) {
+          <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ activityError() }}</div>
+        }
+
+        @if (showActivityForm()) {
+          <form [formGroup]="activityForm" (ngSubmit)="addActivity()" class="mt-4 grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+              <input formControlName="title" type="text" placeholder="e.g. Field mission completed"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Type *</label>
+              <select formControlName="type"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+                @for (t of activityTypes; track t) {
+                  <option [value]="t">{{ activityTypeLabels[t] }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Date *</label>
+              <input formControlName="activityDate" type="date"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <input formControlName="description" type="text"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+            </div>
+            <div class="col-span-2 flex justify-end">
+              <button type="submit" [disabled]="activityForm.invalid || activitySubmitting()"
+                      class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition">
+                {{ activitySubmitting() ? 'Saving...' : 'Add Activity' }}
+              </button>
+            </div>
+          </form>
+        }
+
+        <div class="mt-4">
+          @if (activities().length === 0) {
+            <p class="text-xs text-gray-400 text-center py-4">No activities recorded for this member.</p>
+          } @else {
+            <div class="space-y-2">
+              @for (a of activities(); track a.id) {
+                <div class="flex items-start justify-between p-3 bg-gray-50 rounded-lg text-xs">
+                  <div class="flex items-start gap-3 flex-1 min-w-0">
+                    <span class="px-2 py-0.5 rounded-full font-medium whitespace-nowrap {{ activityTypeColors[a.type] }}">
+                      {{ activityTypeLabels[a.type] }}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="font-medium text-gray-900">{{ a.title }}</p>
+                      @if (a.description) {
+                        <p class="text-gray-500 mt-0.5">{{ a.description }}</p>
+                      }
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                    <span class="text-gray-400 whitespace-nowrap">{{ formatDate(a.activityDate) }}</span>
+                    <button (click)="deleteActivity(a.id!)"
+                            class="text-red-400 hover:text-red-600 transition">✕</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
 
     <!-- Documents section -->

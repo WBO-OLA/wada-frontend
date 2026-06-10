@@ -52,8 +52,7 @@ export class ReportsPage implements OnInit {
     return Math.min(100, Math.round((value / max) * 100));
   }
 
-  budgetUtilPct(finance: DashboardReport['finance']): number {
-    if (!finance?.totalBudgetAmount) return 0;
-    return Math.min(100, Math.round((finance.totalAllocatedAmount / finance.totalBudgetAmount) * 100));
+  formatCurrency(val: number): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val ?? 0);
   }
 }

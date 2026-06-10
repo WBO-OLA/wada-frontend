@@ -1,7 +1,6 @@
 export interface PersonnelSummary {
   totalMembers: number;
   active: number;
-  newJoiners: number;
   injured: number;
   retired: number;
   passedAway: number;
@@ -20,15 +19,16 @@ export interface InventorySummary {
 }
 
 export interface FinanceSummary {
+  totalIncomes: number;
+  totalIncomeAmount: number;
   totalBudgets: number;
   activeBudgets: number;
   totalBudgetAmount: number;
   totalAllocatedAmount: number;
+  totalExpenses: number;
   pendingExpenses: number;
   approvedExpenses: number;
-  approvedExpensesTotal: number;
-  totalIncomes: number;
-  totalIncomeAmount: number;
+  totalApprovedExpenseAmount: number;
 }
 
 export interface DashboardReport {

@@ -21,10 +21,10 @@ export class MemberForm implements OnInit {
     phone: [''],
     email: ['', Validators.email],
     dateOfBirth: [''],
-    dateJoined: [''],
+    joinDate: [''],
     rank: ['RECRUIT' as MilitaryRank, Validators.required],
     unit: ['', Validators.required],
-    status: ['NEW_JOINER' as MemberStatus, Validators.required],
+    status: ['ACTIVE' as MemberStatus, Validators.required],
     notes: [''],
   });
 
@@ -38,7 +38,7 @@ export class MemberForm implements OnInit {
     'MAJOR', 'LIEUTENANT_COLONEL', 'COLONEL', 'BRIGADIER_GENERAL',
     'MAJOR_GENERAL', 'LIEUTENANT_GENERAL', 'GENERAL',
   ];
-  readonly statuses: MemberStatus[] = ['ACTIVE', 'NEW_JOINER', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
+  readonly statuses: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
   readonly rankLabels = RANK_LABELS;
   readonly statusLabels = STATUS_LABELS;
 

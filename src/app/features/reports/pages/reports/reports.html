@@ -44,10 +44,6 @@
             <p class="text-2xl font-bold text-yellow-700">{{ r.personnel?.injured ?? 0 }}</p>
             <p class="text-xs text-gray-500 mt-1">Injured</p>
           </div>
-          <div class="text-center p-3 bg-blue-50 rounded-lg">
-            <p class="text-2xl font-bold text-blue-700">{{ r.personnel?.newJoiners ?? 0 }}</p>
-            <p class="text-xs text-gray-500 mt-1">New Joiners</p>
-          </div>
           <div class="text-center p-3 bg-gray-50 rounded-lg">
             <p class="text-2xl font-bold text-gray-600">{{ r.personnel?.retired ?? 0 }}</p>
             <p class="text-xs text-gray-500 mt-1">Retired</p>
@@ -135,52 +131,34 @@
           <span class="w-2 h-2 rounded-full bg-violet-500 inline-block"></span>
           Finance
         </h2>
-        <div class="grid grid-cols-3 gap-4 mb-5">
-          <div class="text-center p-3 bg-violet-50 rounded-lg">
-            <p class="text-lg font-bold text-violet-700">{{ (r.finance?.totalBudgetAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
-            <p class="text-xs text-gray-500 mt-1">Total Budget</p>
-          </div>
-          <div class="text-center p-3 bg-gray-50 rounded-lg">
-            <p class="text-lg font-bold text-gray-700">{{ (r.finance?.totalAllocatedAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
-            <p class="text-xs text-gray-500 mt-1">Allocated</p>
-          </div>
+        <div class="grid grid-cols-3 gap-4 mb-4">
           <div class="text-center p-3 bg-green-50 rounded-lg">
-            <p class="text-lg font-bold text-green-700">{{ (r.finance?.totalIncomeAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-lg font-bold text-green-700">{{ formatCurrency(r.finance?.totalIncomeAmount ?? 0) }}</p>
             <p class="text-xs text-gray-500 mt-1">Total Income</p>
           </div>
-          <div class="text-center p-3 bg-yellow-50 rounded-lg">
-            <p class="text-2xl font-bold text-yellow-700">{{ r.finance?.pendingExpenses ?? 0 }}</p>
-            <p class="text-xs text-gray-500 mt-1">Pending Expenses</p>
-          </div>
-          <div class="text-center p-3 bg-emerald-50 rounded-lg">
-            <p class="text-2xl font-bold text-emerald-700">{{ r.finance?.approvedExpenses ?? 0 }}</p>
-            <p class="text-xs text-gray-500 mt-1">Approved Expenses</p>
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <p class="text-2xl font-bold text-gray-700">{{ r.finance?.totalIncomes ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Income Entries</p>
           </div>
           <div class="text-center p-3 bg-blue-50 rounded-lg">
             <p class="text-2xl font-bold text-blue-700">{{ r.finance?.activeBudgets ?? 0 }}</p>
             <p class="text-xs text-gray-500 mt-1">Active Budgets</p>
           </div>
         </div>
-
-        <!-- Budget utilization bar -->
-        @if (r.finance?.totalBudgetAmount) {
-          <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Budget Utilization</span>
-              <span>{{ budgetUtilPct(r.finance) }}%</span>
-            </div>
-            <div class="w-full bg-gray-100 rounded-full h-3">
-              <div class="h-3 rounded-full transition-all"
-                   [style.width.%]="budgetUtilPct(r.finance)"
-                   [class]="budgetUtilPct(r.finance) >= 90 ? 'bg-red-500' : budgetUtilPct(r.finance) >= 70 ? 'bg-amber-500' : 'bg-violet-500'">
-              </div>
-            </div>
-            <div class="flex justify-between text-xs text-gray-400 mt-1">
-              <span>Allocated: {{ (r.finance.totalAllocatedAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</span>
-              <span>Total: {{ (r.finance.totalBudgetAmount ?? 0) | currency:'USD':'symbol':'1.0-0' }}</span>
-            </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center p-3 bg-indigo-50 rounded-lg">
+            <p class="text-lg font-bold text-indigo-700">{{ formatCurrency(r.finance?.totalBudgetAmount ?? 0) }}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Budget</p>
           </div>
-        }
+          <div class="text-center p-3 bg-amber-50 rounded-lg">
+            <p class="text-2xl font-bold text-amber-700">{{ r.finance?.pendingExpenses ?? 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1">Pending Expenses</p>
+          </div>
+          <div class="text-center p-3 bg-red-50 rounded-lg">
+            <p class="text-lg font-bold text-red-700">{{ formatCurrency(r.finance?.totalApprovedExpenseAmount ?? 0) }}</p>
+            <p class="text-xs text-gray-500 mt-1">Approved Expenses</p>
+          </div>
+        </div>
       </div>
 
     </div>

@@ -1,15 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { IncomePage } from './pages/income/income';
 import { BudgetPage } from './pages/budget/budget';
 import { Expenses } from './pages/expenses/expenses';
-import { IncomePage } from './pages/income/income';
 import { LedgerPage } from './pages/ledger/ledger';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'budget', pathMatch: 'full' },
+  { path: '', redirectTo: 'income', pathMatch: 'full' },
+  { path: 'income', component: IncomePage },
   { path: 'budget', component: BudgetPage },
   { path: 'expenses', component: Expenses },
-  { path: 'income', component: IncomePage },
   { path: 'ledger', component: LedgerPage },
 ];
 

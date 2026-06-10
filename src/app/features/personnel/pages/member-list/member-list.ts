@@ -16,13 +16,12 @@ export class MemberList implements OnInit {
   loading = signal(true);
   statusFilter = '';
 
-  readonly statusOptions: MemberStatus[] = ['ACTIVE', 'NEW_JOINER', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
+  readonly statusOptions: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
 
   readonly statusColors: Record<MemberStatus, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
-    NEW_JOINER: 'bg-blue-100 text-blue-700',
     INJURED: 'bg-yellow-100 text-yellow-700',
     RETIRED: 'bg-gray-100 text-gray-600',
     PASSED_AWAY: 'bg-red-100 text-red-700',

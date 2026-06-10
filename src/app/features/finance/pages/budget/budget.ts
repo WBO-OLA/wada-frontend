@@ -3,16 +3,33 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
-import { Budget, BudgetStatus, BUDGET_STATUS_LABELS } from '../../../../core/models/finance.model';
+import {
+  Budget, BudgetStatus,
+  BUDGET_STATUS_LABELS, BUDGET_STATUS_COLORS
+} from '../../../../core/models/finance.model';
 
 @Component({
   selector: 'app-budget',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './budget.html',
   styleUrl: './budget.css',
 })
 export class BudgetPage implements OnInit {
   private fb = inject(FormBuilder);
+  private financeService = inject(FinanceService);
+
+  budgets = signal<Budget[]>([]);
+  loading = signal(false);
+  showForm = signal(false);
+  saving = signal(false);
+  error = signal('');
+  success = signal('');
+  approvingId = signal<number | null>(null);
+
+  readonly statusLabels: Record<string, string> = BUDGET_STATUS_LABELS;
+  readonly statusColors: Record<string, string> = BUDGET_STATUS_COLORS;
+
   form = this.fb.group({
     name: ['', Validators.required],
     fiscalYear: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]],
@@ -23,30 +40,16 @@ export class BudgetPage implements OnInit {
     notes: [''],
   });
 
-  approveForm = this.fb.group({ approvedBy: ['', Validators.required] });
+  approveForm = this.fb.group({
+    approvedBy: ['', Validators.required],
+  });
 
-  budgets = signal<Budget[]>([]);
-  loading = signal(false);
-  showForm = signal(false);
-  saving = signal(false);
-  approvingId = signal<number | null>(null);
-  error = signal('');
-  success = signal('');
-
-  readonly statusLabels = BUDGET_STATUS_LABELS;
-
-  private financeService = inject(FinanceService);
-
-  constructor() {}
-
-  ngOnInit() {
-    this.load();
-  }
+  ngOnInit() { this.load(); }
 
   load() {
     this.loading.set(true);
     this.financeService.getBudgets().subscribe({
-      next: (data) => { this.budgets.set(data); this.loading.set(false); },
+      next: data => { this.budgets.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
@@ -94,22 +97,22 @@ export class BudgetPage implements OnInit {
   }
 
   closeBudget(id: number) {
-    this.financeService.closeBudget(id).subscribe({
+    this.financeService.closeBudget(id, 'admin').subscribe({
       next: () => { this.success.set('Budget closed.'); this.load(); },
       error: (err: any) => this.error.set(err?.error?.message ?? 'Error closing budget.'),
     });
   }
 
-  statusClass(status: BudgetStatus): string {
-    return {
-      DRAFT: 'bg-gray-100 text-gray-600',
-      ACTIVE: 'bg-green-100 text-green-700',
-      CLOSED: 'bg-slate-100 text-slate-500',
-    }[status];
+  statusClass(status: BudgetStatus | undefined): string {
+    return this.statusColors[status ?? 'DRAFT'];
   }
 
   usedPercent(budget: Budget): number {
-    if (!budget.totalAmount) return 0;
-    return Math.min(100, Math.round((budget.allocatedAmount / budget.totalAmount) * 100));
+    if (!budget.totalAmount || budget.totalAmount === 0) return 0;
+    return Math.min(100, Math.round(((budget.allocatedAmount ?? 0) / budget.totalAmount) * 100));
+  }
+
+  formatCurrency(val: number | undefined): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val ?? 0);
   }
 }

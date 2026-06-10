@@ -1,10 +1,12 @@
-export type MemberStatus = 'ACTIVE' | 'NEW_JOINER' | 'INJURED' | 'RETIRED' | 'PASSED_AWAY';
+export type MemberStatus = 'ACTIVE' | 'INJURED' | 'RETIRED' | 'PASSED_AWAY';
 
 export type MilitaryRank =
   | 'RECRUIT' | 'PRIVATE' | 'CORPORAL' | 'SERGEANT' | 'STAFF_SERGEANT'
   | 'WARRANT_OFFICER' | 'SECOND_LIEUTENANT' | 'FIRST_LIEUTENANT' | 'CAPTAIN'
   | 'MAJOR' | 'LIEUTENANT_COLONEL' | 'COLONEL' | 'BRIGADIER_GENERAL'
   | 'MAJOR_GENERAL' | 'LIEUTENANT_GENERAL' | 'GENERAL';
+
+export type ActivityType = 'JOIN' | 'PROMOTION' | 'INJURY' | 'MISSION' | 'AWARD' | 'RETIREMENT';
 
 export interface Member {
   id?: number;
@@ -15,13 +17,23 @@ export interface Member {
   phone?: string;
   email?: string;
   dateOfBirth?: string;
-  dateJoined?: string;
+  joinDate?: string;
   rank: MilitaryRank;
   unit: string;
   status: MemberStatus;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface MemberActivity {
+  id?: number;
+  memberId?: number;
+  title: string;
+  description?: string;
+  activityDate: string;
+  type: ActivityType;
+  createdAt?: string;
 }
 
 export interface MemberStatusUpdateRequest {
@@ -67,7 +79,6 @@ export interface RankHistoryEntry {
 
 export const STATUS_LABELS: Record<MemberStatus, string> = {
   ACTIVE: 'Active',
-  NEW_JOINER: 'New Joiner',
   INJURED: 'Injured',
   RETIRED: 'Retired',
   PASSED_AWAY: 'Passed Away',
@@ -90,4 +101,22 @@ export const RANK_LABELS: Record<MilitaryRank, string> = {
   MAJOR_GENERAL: 'Major General',
   LIEUTENANT_GENERAL: 'Lt. General',
   GENERAL: 'General',
+};
+
+export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
+  JOIN: 'Joined',
+  PROMOTION: 'Promotion',
+  INJURY: 'Injury',
+  MISSION: 'Mission',
+  AWARD: 'Award',
+  RETIREMENT: 'Retirement',
+};
+
+export const ACTIVITY_TYPE_COLORS: Record<ActivityType, string> = {
+  JOIN: 'bg-blue-100 text-blue-700',
+  PROMOTION: 'bg-amber-100 text-amber-700',
+  INJURY: 'bg-orange-100 text-orange-700',
+  MISSION: 'bg-indigo-100 text-indigo-700',
+  AWARD: 'bg-green-100 text-green-700',
+  RETIREMENT: 'bg-gray-100 text-gray-600',
 };

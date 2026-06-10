@@ -1,23 +1,20 @@
 <div>
-  <div class="mb-6">
+  <div class="mb-5">
     <h1 class="text-2xl font-bold text-gray-900">Finance Ledger</h1>
     <p class="text-sm text-gray-500 mt-1">Audit trail of all financial transactions</p>
   </div>
 
-  <!-- Filter pills -->
+  <!-- Type filter pills -->
   <div class="flex flex-wrap gap-2 mb-5">
-    <button (click)="load()"
-            [class]="!activeFilter()
-              ? 'px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800 text-white'
-              : 'px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition'">
-      All
-    </button>
     @for (type of allTypes; track type) {
-      <button (click)="load(type)"
+      <button (click)="setFilter(type)"
               [class]="activeFilter() === type
-                ? 'px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800 text-white'
-                : 'px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition'">
-        {{ typeLabels[type] }}
+                ? 'px-3 py-1 rounded-full text-xs font-medium bg-slate-900 text-white'
+                : 'px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200'">
+        {{ filterLabel(type) }}
+        @if (type === 'ALL') {
+          ({{ allEntries().length }})
+        }
       </button>
     }
   </div>
@@ -50,7 +47,7 @@
               </td>
               <td class="px-4 py-3 text-gray-700 max-w-xs truncate">{{ entry.description }}</td>
               <td class="px-4 py-3 text-right font-semibold"
-                  [class]="entry.type === 'INCOME_RECEIVED' ? 'text-green-700' : 'text-red-700'">
+                  [class]="isIncomeType(entry.type) ? 'text-green-700' : 'text-red-700'">
                 {{ formatCurrency(entry.amount) }}
               </td>
               <td class="px-4 py-3 text-gray-500 text-xs">

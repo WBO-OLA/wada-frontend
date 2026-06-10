@@ -4,18 +4,36 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
 import {
-  Budget, Expense, ExpenseStatus,
-  EXPENSE_STATUS_LABELS,
+  Expense, Budget, ExpenseStatus,
+  EXPENSE_STATUS_LABELS, EXPENSE_STATUS_COLORS
 } from '../../../../core/models/finance.model';
 
 @Component({
   selector: 'app-expenses',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './expenses.html',
   styleUrl: './expenses.css',
 })
 export class Expenses implements OnInit {
   private fb = inject(FormBuilder);
+  private financeService = inject(FinanceService);
+
+  expenses = signal<Expense[]>([]);
+  budgets = signal<Budget[]>([]);
+  loading = signal(false);
+  showForm = signal(false);
+  saving = signal(false);
+  error = signal('');
+  success = signal('');
+  filterStatus = signal('');
+  actionId = signal<number | null>(null);
+  actionType = signal<'approve' | 'reject'>('approve');
+
+  readonly statuses: ExpenseStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'];
+  readonly statusLabels: Record<string, string> = EXPENSE_STATUS_LABELS;
+  readonly statusColors: Record<string, string> = EXPENSE_STATUS_COLORS;
+
   form = this.fb.group({
     title: ['', Validators.required],
     description: [''],
@@ -32,34 +50,19 @@ export class Expenses implements OnInit {
     rejectionReason: [''],
   });
 
-  expenses = signal<Expense[]>([]);
-  budgets = signal<Budget[]>([]);
-  filterStatus = signal<string>('');
-  loading = signal(false);
-  showForm = signal(false);
-  saving = signal(false);
-  actionId = signal<number | null>(null);
-  actionType = signal<'approve' | 'reject' | null>(null);
-  error = signal('');
-  success = signal('');
-
-  readonly statusLabels = EXPENSE_STATUS_LABELS;
-  readonly statuses: ExpenseStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'];
-
-  private financeService = inject(FinanceService);
-
-  constructor() {}
-
   ngOnInit() {
     this.load();
-    this.financeService.getBudgets().subscribe(b => this.budgets.set(b.filter(x => x.status === 'ACTIVE')));
+    this.financeService.getBudgets().subscribe({
+      next: data => this.budgets.set(data.filter(b => b.status === 'ACTIVE')),
+      error: () => {},
+    });
   }
 
   load() {
     this.loading.set(true);
     const status = this.filterStatus() || undefined;
     this.financeService.getExpenses(status).subscribe({
-      next: (data) => { this.expenses.set(data); this.loading.set(false); },
+      next: data => { this.expenses.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
@@ -73,8 +76,7 @@ export class Expenses implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    const value = this.form.value as any;
-    this.financeService.createExpense(value).subscribe({
+    this.financeService.createExpense(this.form.value as any).subscribe({
       next: () => {
         this.success.set('Expense submitted.');
         this.form.reset();
@@ -97,34 +99,30 @@ export class Expenses implements OnInit {
 
   submitAction() {
     if (this.approvalForm.invalid) return;
-    const id = this.actionId()!;
-    const type = this.actionType()!;
-    const request = this.approvalForm.value as any;
     this.saving.set(true);
-    const action = type === 'approve'
+    const id = this.actionId()!;
+    const request = {
+      approvedBy: this.approvalForm.value.approvedBy!,
+      rejectionReason: this.approvalForm.value.rejectionReason ?? undefined,
+    };
+    const obs = this.actionType() === 'approve'
       ? this.financeService.approveExpense(id, request)
       : this.financeService.rejectExpense(id, request);
-    action.subscribe({
+    obs.subscribe({
       next: () => {
-        this.success.set(`Expense ${type}d.`);
+        this.success.set(`Expense ${this.actionType() === 'approve' ? 'approved' : 'rejected'}.`);
         this.actionId.set(null);
-        this.actionType.set(null);
         this.saving.set(false);
         this.load();
       },
       error: (err: any) => {
-        this.error.set(err?.error?.message ?? 'Error processing action.');
+        this.error.set(err?.error?.message ?? 'Error processing expense.');
         this.saving.set(false);
       },
     });
   }
 
-  statusClass(status: ExpenseStatus): string {
-    return ({
-      PENDING:   'bg-yellow-100 text-yellow-700',
-      APPROVED:  'bg-green-100 text-green-700',
-      REJECTED:  'bg-red-100 text-red-700',
-      CANCELLED: 'bg-gray-100 text-gray-500',
-    } as Record<ExpenseStatus, string>)[status];
+  statusClass(status: ExpenseStatus | undefined): string {
+    return this.statusColors[status ?? 'PENDING'];
   }
 }

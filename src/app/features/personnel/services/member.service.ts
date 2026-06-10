@@ -3,7 +3,11 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { ApiResponse } from '../../../core/models/api-response.model';
-import { Member, MedicalRecord, MemberRankUpdateRequest, MemberStatusUpdateRequest, RankHistoryEntry, StatusHistoryEntry } from '../../../core/models/member.model';
+import {
+  Member, MedicalRecord, MemberActivity,
+  MemberRankUpdateRequest, MemberStatusUpdateRequest,
+  RankHistoryEntry, StatusHistoryEntry
+} from '../../../core/models/member.model';
 
 @Injectable({ providedIn: 'root' })
 export class MemberService {
@@ -62,5 +66,17 @@ export class MemberService {
 
   deleteMedicalRecord(recordId: number): Observable<void> {
     return this.api.delete<ApiResponse<void>>(`personnel/medical-records/${recordId}`).pipe(map(() => undefined));
+  }
+
+  getActivities(id: number): Observable<MemberActivity[]> {
+    return this.api.get<ApiResponse<MemberActivity[]>>(`${this.path}/${id}/activities`).pipe(map(r => r.data));
+  }
+
+  addActivity(id: number, request: Partial<MemberActivity>): Observable<MemberActivity> {
+    return this.api.post<ApiResponse<MemberActivity>>(`${this.path}/${id}/activities`, request).pipe(map(r => r.data));
+  }
+
+  deleteActivity(activityId: number): Observable<void> {
+    return this.api.delete<ApiResponse<void>>(`personnel/activities/${activityId}`).pipe(map(() => undefined));
   }
 }

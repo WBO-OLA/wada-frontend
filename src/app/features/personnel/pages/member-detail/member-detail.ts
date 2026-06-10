@@ -7,7 +7,8 @@ import { DocumentService } from '../../services/document.service';
 import { AssetAssignmentService } from '../../../inventory/services/asset-assignment.service';
 import {
   Member, STATUS_LABELS, RANK_LABELS, MemberStatus,
-  StatusHistoryEntry, RankHistoryEntry, MedicalRecord
+  StatusHistoryEntry, RankHistoryEntry, MedicalRecord,
+  MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS
 } from '../../../../core/models/member.model';
 import { MemberDocument } from '../../../../core/models/document.model';
 import { AssetAssignment } from '../../../../core/models/asset-assignment.model';
@@ -28,6 +29,12 @@ export class MemberDetail implements OnInit {
   protected auth = inject(AuthService);
 
   uploadForm = this.fb.group({ description: [''], uploadedBy: [''] });
+  activityForm = this.fb.group({
+    title: ['', Validators.required],
+    description: [''],
+    activityDate: ['', Validators.required],
+    type: ['JOIN' as ActivityType, Validators.required],
+  });
   medicalForm = this.fb.group({
     recordDate: ['', Validators.required],
     diagnosis: ['', Validators.required],
@@ -47,6 +54,12 @@ export class MemberDetail implements OnInit {
   docError = signal('');
   docSuccess = signal('');
 
+  activities = signal<MemberActivity[]>([]);
+  showActivities = signal(false);
+  showActivityForm = signal(false);
+  activitySubmitting = signal(false);
+  activityError = signal('');
+
   statusHistory = signal<StatusHistoryEntry[]>([]);
   rankHistory = signal<RankHistoryEntry[]>([]);
   showStatusHistory = signal(false);
@@ -63,9 +76,11 @@ export class MemberDetail implements OnInit {
 
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
+  readonly activityTypeLabels = ACTIVITY_TYPE_LABELS;
+  readonly activityTypeColors = ACTIVITY_TYPE_COLORS;
+  readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'INJURY', 'MISSION', 'AWARD', 'RETIREMENT'];
   readonly statusColors: Record<MemberStatus, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
-    NEW_JOINER: 'bg-blue-100 text-blue-700',
     INJURED: 'bg-yellow-100 text-yellow-700',
     RETIRED: 'bg-gray-100 text-gray-600',
     PASSED_AWAY: 'bg-red-100 text-red-700',
@@ -85,6 +100,7 @@ export class MemberDetail implements OnInit {
         this.member.set(m);
         this.loading.set(false);
         this.loadDocuments(id);
+        this.loadActivities(id);
         this.loadStatusHistory(id);
         this.loadRankHistory(id);
         this.loadAssignedAssets(id);
@@ -99,6 +115,37 @@ export class MemberDetail implements OnInit {
     this.documentService.getDocuments(memberId).subscribe({
       next: docs => { this.documents.set(docs); this.docsLoading.set(false); },
       error: () => this.docsLoading.set(false),
+    });
+  }
+
+  loadActivities(memberId: number) {
+    this.memberService.getActivities(memberId).subscribe({
+      next: a => this.activities.set(a),
+      error: () => {},
+    });
+  }
+
+  addActivity() {
+    if (this.activityForm.invalid || !this.member()?.id) return;
+    this.activitySubmitting.set(true);
+    this.activityError.set('');
+    this.memberService.addActivity(this.member()!.id!, this.activityForm.value as Partial<MemberActivity>).subscribe({
+      next: () => {
+        this.activitySubmitting.set(false);
+        this.showActivityForm.set(false);
+        this.activityForm.reset({ type: 'JOIN' });
+        this.loadActivities(this.member()!.id!);
+      },
+      error: (err: any) => {
+        this.activityError.set(err?.error?.message ?? 'Failed to add activity.');
+        this.activitySubmitting.set(false);
+      },
+    });
+  }
+
+  deleteActivity(activityId: number) {
+    this.memberService.deleteActivity(activityId).subscribe({
+      next: () => this.loadActivities(this.member()!.id!),
     });
   }
 
