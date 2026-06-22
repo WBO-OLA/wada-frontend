@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../../../../core/models/api-response.model';
+import { environment } from '../../../../../environments/environment';
 
 interface UserRecord {
   id: number;
@@ -13,7 +14,7 @@ interface UserRecord {
 }
 
 const ROLES = ['USER', 'MANAGER', 'ADMIN'];
-const API = 'http://localhost:8080/api/auth/admin';
+const API = `${environment.apiUrl}/auth/admin`;
 
 @Component({
   selector: 'app-admin-users',
