@@ -30,7 +30,7 @@
               <th class="px-6 py-3 text-left">Military ID</th>
               <th class="px-6 py-3 text-left">Name</th>
               <th class="px-6 py-3 text-left">Rank</th>
-              <th class="px-6 py-3 text-left">Unit</th>
+              <th class="px-6 py-3 text-left">Command</th>
               <th class="px-6 py-3 text-left">Status</th>
               <th class="px-6 py-3 text-left">Joined</th>
               <th class="px-6 py-3 text-right">Actions</th>
@@ -42,7 +42,7 @@
                 <td class="px-6 py-4 font-mono text-xs text-gray-600">{{ m.militaryId }}</td>
                 <td class="px-6 py-4 font-medium text-gray-900">{{ m.firstName }} {{ m.lastName }}</td>
                 <td class="px-6 py-4 text-gray-600">{{ rankLabels[m.rank] }}</td>
-                <td class="px-6 py-4 text-gray-600">{{ m.unit }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ m.command?.name ?? '—' }}</td>
                 <td class="px-6 py-4">
                   <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ statusColors[m.status] }}">
                     {{ statusLabels[m.status] }}

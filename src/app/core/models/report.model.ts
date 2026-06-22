@@ -5,7 +5,7 @@ export interface PersonnelSummary {
   retired: number;
   passedAway: number;
   byRank: Record<string, number>;
-  byUnit: Record<string, number>;
+  byCommand: Record<string, number>;
 }
 
 export interface InventorySummary {

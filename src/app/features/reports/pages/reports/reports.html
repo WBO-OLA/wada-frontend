@@ -54,11 +54,11 @@
           </div>
         </div>
 
-        @if (r.personnel?.byUnit && topEntries(r.personnel.byUnit).length > 0) {
+        @if (r.personnel?.byCommand && topEntries(r.personnel.byCommand).length > 0) {
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">Members by Unit</p>
+            <p class="text-xs font-medium text-gray-500 mb-2">Members by Command</p>
             <div class="space-y-2">
-              @for (entry of topEntries(r.personnel.byUnit); track entry[0]) {
+              @for (entry of topEntries(r.personnel.byCommand); track entry[0]) {
                 <div class="flex items-center gap-3">
                   <span class="text-xs text-gray-600 w-32 truncate">{{ entry[0] }}</span>
                   <div class="flex-1 bg-gray-100 rounded-full h-2">

@@ -34,8 +34,8 @@
           <p class="font-medium text-gray-900 mt-0.5">{{ rankLabels[member()!.rank] }}</p>
         </div>
         <div>
-          <p class="text-xs text-gray-500">Unit</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.unit }}</p>
+          <p class="text-xs text-gray-500">Command</p>
+          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.command?.name ?? '—' }}</p>
         </div>
         <div>
           <p class="text-xs text-gray-500">Date Joined</p>

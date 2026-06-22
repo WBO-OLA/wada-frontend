@@ -3,10 +3,12 @@ import { RouterModule, Routes } from '@angular/router';
 import { MemberList } from './pages/member-list/member-list';
 import { MemberForm } from './pages/member-form/member-form';
 import { MemberDetail } from './pages/member-detail/member-detail';
+import { CommandList } from './pages/command-list/command-list';
 
 const routes: Routes = [
   { path: '', component: MemberList },
   { path: 'new', component: MemberForm },
+  { path: 'commands', component: CommandList },
   { path: ':id', component: MemberDetail },
   { path: ':id/edit', component: MemberForm },
 ];

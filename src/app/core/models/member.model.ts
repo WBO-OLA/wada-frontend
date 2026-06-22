@@ -1,3 +1,5 @@
+import { Command } from './command.model';
+
 export type MemberStatus = 'ACTIVE' | 'INJURED' | 'RETIRED' | 'PASSED_AWAY';
 
 export type MilitaryRank =
@@ -19,7 +21,7 @@ export interface Member {
   dateOfBirth?: string;
   joinDate?: string;
   rank: MilitaryRank;
-  unit: string;
+  command?: Command | null;
   status: MemberStatus;
   notes?: string;
   createdAt?: string;

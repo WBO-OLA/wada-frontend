@@ -134,7 +134,7 @@
               <td class="px-5 py-3 text-gray-500">{{ exp.submittedBy }}</td>
               <td class="px-5 py-3">
                 <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(exp.status) }}">
-                  {{ statusLabels[exp.status] }}
+                  {{ statusLabels[exp.status ?? 'PENDING'] }}
                 </span>
               </td>
               <td class="px-5 py-3">

@@ -100,7 +100,7 @@
             </div>
             <div class="flex items-center gap-3">
               <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(budget.status) }}">
-                {{ statusLabels[budget.status] }}
+                {{ statusLabels[budget.status ?? 'DRAFT'] }}
               </span>
               @if (budget.status === 'DRAFT') {
                 <button (click)="startApprove(budget.id!)"
