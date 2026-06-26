@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AssetAssignmentService } from '../../services/asset-assignment.service';
 import { ItemService } from '../../services/item.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { AssetAssignment } from '../../../../core/models/asset-assignment.model';
 import { Item } from '../../../../core/models/item.model';
 
@@ -17,6 +18,10 @@ export class AssignmentsPage implements OnInit {
   private fb = inject(FormBuilder);
   private service = inject(AssetAssignmentService);
   private itemService = inject(ItemService);
+  private auth = inject(AuthService);
+
+  get canEdit(): boolean { return this.auth.canEdit(); }
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
 
   assignments = signal<AssetAssignment[]>([]);
   items = signal<Item[]>([]);
@@ -29,7 +34,6 @@ export class AssignmentsPage implements OnInit {
     itemId: [null as number | null, Validators.required],
     memberId: [null as number | null, [Validators.required, Validators.min(1)]],
     memberName: ['', Validators.required],
-    assignedBy: [''],
     notes: [''],
   });
 
@@ -55,7 +59,7 @@ export class AssignmentsPage implements OnInit {
       itemId: v.itemId!,
       memberId: v.memberId!,
       memberName: v.memberName!,
-      assignedBy: v.assignedBy ?? undefined,
+      assignedBy: this.currentUser,
       notes: v.notes ?? undefined,
       status: 'ASSIGNED',
     }).subscribe({

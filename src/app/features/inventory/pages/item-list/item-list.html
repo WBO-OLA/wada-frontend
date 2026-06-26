@@ -1,53 +1,177 @@
 <div>
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
     <h1 class="text-2xl font-bold text-gray-900">Inventory</h1>
-    <div class="flex gap-2">
+    <div class="flex gap-2 flex-wrap">
       <a routerLink="stock"
          class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
         Stock Movement
       </a>
+      @if (canEdit) {
+        <button (click)="openCreate()"
+                class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+          + Add Item
+        </button>
+      }
     </div>
   </div>
 
+  @if (error()) {
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">{{ success() }}</div>
+  }
+
+  <!-- Add / Edit form -->
+  @if (showForm() && canEdit) {
+    <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-sm font-semibold text-gray-900 mb-4">{{ editingId() ? 'Edit Item' : 'New Item' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+          <input formControlName="name" type="text" placeholder="e.g. Rifle M4"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">SKU *</label>
+          <input formControlName="sku" type="text" placeholder="e.g. WPN-M4-001"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Category</label>
+          <input formControlName="category" type="text" placeholder="e.g. Weapons, Equipment"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Warehouse</label>
+          <select formControlName="warehouseId"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+            <option [value]="null">No warehouse</option>
+            @for (w of warehouses(); track w.id) {
+              <option [value]="w.id">{{ w.name }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Quantity *</label>
+          <input formControlName="quantity" type="number" min="0"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Unit Price (USD) *</label>
+          <input formControlName="unitPrice" type="number" min="0" step="0.01"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div class="col-span-1 sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+          <input formControlName="description" type="text"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+        </div>
+        <div class="col-span-1 sm:col-span-2 flex justify-end gap-3 pt-2">
+          <button type="button" (click)="cancelForm()"
+                  class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="form.invalid || saving()"
+                  class="px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors">
+            {{ saving() ? 'Saving...' : (editingId() ? 'Save Changes' : 'Add Item') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+             type="text" placeholder="Search name or SKU..."
+             class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+
+      <select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)"
+              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+        <option value="">All categories</option>
+        @for (cat of categories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+
+      <select [ngModel]="warehouseFilter()" (ngModelChange)="warehouseFilter.set($event)"
+              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+        <option value="">All warehouses</option>
+        @for (w of warehouses(); track w.id) {
+          <option [value]="w.id">{{ w.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (searchTerm() || categoryFilter() || warehouseFilter()) {
+      <div class="mt-3 flex items-center gap-2">
+        <span class="text-xs text-gray-500">{{ filteredItems().length }} result{{ filteredItems().length !== 1 ? 's' : '' }}</span>
+        <button (click)="clearFilters()" class="text-xs text-slate-600 underline hover:text-slate-900">Clear filters</button>
+      </div>
+    }
+  </div>
+
+  <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     @if (loading()) {
       <div class="p-12 text-center text-gray-400 text-sm">Loading items...</div>
-    } @else if (items().length === 0) {
-      <div class="p-12 text-center text-gray-400 text-sm">No items found.</div>
+    } @else if (filteredItems().length === 0) {
+      <div class="p-12 text-center text-gray-400 text-sm">
+        {{ items().length === 0 ? 'No items in inventory yet.' : 'No items match your filters.' }}
+      </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider border-b border-gray-100">
             <tr>
-              <th class="px-6 py-3 text-left">SKU</th>
-              <th class="px-6 py-3 text-left">Name</th>
-              <th class="px-6 py-3 text-left">Category</th>
-              <th class="px-6 py-3 text-left">Warehouse</th>
-              <th class="px-6 py-3 text-right">Quantity</th>
-              <th class="px-6 py-3 text-right">Unit Price</th>
-              <th class="px-6 py-3 text-right">Actions</th>
+              <th class="px-4 py-3 text-left">Item</th>
+              <th class="px-4 py-3 text-left hidden sm:table-cell">SKU</th>
+              <th class="px-4 py-3 text-left hidden md:table-cell">Category</th>
+              <th class="px-4 py-3 text-left hidden md:table-cell">Warehouse</th>
+              <th class="px-4 py-3 text-right">Stock</th>
+              <th class="px-4 py-3 text-right hidden sm:table-cell">Unit Price</th>
+              @if (canEdit) {
+                <th class="px-4 py-3 text-right">Actions</th>
+              }
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            @for (item of items(); track item.id) {
+            @for (item of filteredItems(); track item.id) {
               <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 font-mono text-xs text-gray-600">{{ item.sku }}</td>
-                <td class="px-6 py-4 font-medium text-gray-900">{{ item.name }}</td>
-                <td class="px-6 py-4 text-gray-600">{{ item.category ?? '—' }}</td>
-                <td class="px-6 py-4 text-gray-600">{{ item.warehouse?.name ?? '—' }}</td>
-                <td class="px-6 py-4 text-right">
+                <td class="px-4 py-3">
+                  <p class="font-medium text-gray-900">{{ item.name }}</p>
+                  <p class="text-xs text-gray-400 sm:hidden font-mono">{{ item.sku }}</p>
+                  <p class="text-xs text-gray-400 md:hidden">{{ item.category ?? '' }}</p>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">{{ item.sku }}</td>
+                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ item.category ?? '—' }}</td>
+                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ item.warehouse?.name ?? '—' }}</td>
+                <td class="px-4 py-3 text-right">
                   <span [class]="item.quantity < 10 ? 'text-red-600 font-semibold' : 'text-gray-900'">
                     {{ item.quantity }}
                   </span>
+                  @if (item.quantity < 10) {
+                    <span class="ml-1 text-xs text-red-400">low</span>
+                  }
                 </td>
-                <td class="px-6 py-4 text-right text-gray-700">{{ item.unitPrice | currency }}</td>
-                <td class="px-6 py-4 text-right space-x-3">
-                  <button (click)="delete(item.id!)" class="text-red-500 hover:underline">Delete</button>
-                </td>
+                <td class="px-4 py-3 text-right text-gray-700 hidden sm:table-cell">{{ item.unitPrice | currency }}</td>
+                @if (canEdit) {
+                  <td class="px-4 py-3 text-right">
+                    <div class="flex items-center justify-end gap-3">
+                      <button (click)="openEdit(item)" class="text-xs text-slate-600 hover:text-slate-900 font-medium">Edit</button>
+                      <button (click)="delete(item.id!, item.name)" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                    </div>
+                  </td>
+                }
               </tr>
             }
           </tbody>
         </table>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+        {{ filteredItems().length }} of {{ items().length }} item{{ items().length !== 1 ? 's' : '' }}
       </div>
     }
   </div>

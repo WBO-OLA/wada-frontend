@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { PurchaseOrderService } from '../../services/purchase-order.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import {
   PurchaseOrder, OrderStatus,
   ORDER_STATUS_LABELS, ORDER_STATUS_COLORS
@@ -17,6 +18,10 @@ import {
 export class PurchaseOrdersPage implements OnInit {
   private fb = inject(FormBuilder);
   private service = inject(PurchaseOrderService);
+  private auth = inject(AuthService);
+
+  get canEdit(): boolean { return this.auth.canEdit(); }
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
 
   orders = signal<PurchaseOrder[]>([]);
   loading = signal(true);
@@ -34,7 +39,6 @@ export class PurchaseOrdersPage implements OnInit {
     itemSku: [''],
     quantity: [1, [Validators.required, Validators.min(1)]],
     unitPrice: [0, [Validators.required, Validators.min(0.01)]],
-    orderedBy: [''],
     expectedDeliveryDate: [''],
     notes: [''],
   });
@@ -53,7 +57,7 @@ export class PurchaseOrdersPage implements OnInit {
     if (this.form.invalid) return;
     this.submitting.set(true);
     this.error.set('');
-    this.service.create(this.form.value as Partial<PurchaseOrder>).subscribe({
+    this.service.create({ ...this.form.value, orderedBy: this.currentUser } as Partial<PurchaseOrder>).subscribe({
       next: () => {
         this.submitting.set(false);
         this.showForm.set(false);

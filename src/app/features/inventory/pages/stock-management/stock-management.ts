@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ItemService } from '../../services/item.service';
 import { WarehouseService } from '../../services/warehouse.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Item } from '../../../../core/models/item.model';
 import { Warehouse } from '../../../../core/models/warehouse.model';
 
@@ -20,7 +21,6 @@ export class StockManagement implements OnInit {
     warehouseId: [null as number | null, Validators.required],
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
     referenceNumber: [''],
-    performedBy: [''],
     notes: [''],
   });
 
@@ -32,6 +32,9 @@ export class StockManagement implements OnInit {
 
   private itemService = inject(ItemService);
   private warehouseService = inject(WarehouseService);
+  private auth = inject(AuthService);
+
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
 
   constructor() {}
 
@@ -55,7 +58,7 @@ export class StockManagement implements OnInit {
     this.successMessage.set('');
     this.errorMessage.set('');
     const value = this.form.value as any;
-    const request = { ...value };
+    const request = { ...value, performedBy: this.currentUser };
     const action = type === 'in'
       ? this.itemService.stockIn(request)
       : this.itemService.stockOut(request);

@@ -4,10 +4,12 @@
       <h1 class="text-2xl font-bold text-gray-900">Asset Assignments</h1>
       <p class="text-sm text-gray-500 mt-1">Track inventory items assigned to personnel</p>
     </div>
-    <button (click)="showForm.set(!showForm())"
-            class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition">
-      {{ showForm() ? 'Cancel' : '+ Assign Asset' }}
-    </button>
+    @if (canEdit) {
+      <button (click)="showForm.set(!showForm())"
+              class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition">
+        {{ showForm() ? 'Cancel' : '+ Assign Asset' }}
+      </button>
+    }
   </div>
 
   @if (error()) {
@@ -40,8 +42,7 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Assigned By</label>
-          <input formControlName="assignedBy" type="text"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+          <p class="px-3 py-2 text-sm bg-gray-100 rounded-lg text-gray-700 font-medium">{{ currentUser }}</p>
         </div>
         <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
@@ -98,7 +99,7 @@
               </td>
               <td class="px-4 py-3 text-gray-400 text-xs">{{ formatDate(a.returnedAt) }}</td>
               <td class="px-4 py-3">
-                @if (a.status === 'ASSIGNED') {
+                @if (a.status === 'ASSIGNED' && canEdit) {
                   <button (click)="returnItem(a.id!)"
                           class="text-xs text-amber-600 hover:text-amber-800 font-medium transition">Return</button>
                 }
