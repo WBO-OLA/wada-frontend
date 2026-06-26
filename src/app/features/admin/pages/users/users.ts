@@ -1,9 +1,7 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { ApiResponse } from '../../../../core/models/api-response.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
 
@@ -84,10 +82,12 @@ export class AdminUsersPage implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.http.get<ApiResponse<UserRecord[]>>(`${API}/users`).pipe(
-      map(r => r.data)
-    ).subscribe({
-      next: users => { this.users.set(users); this.loading.set(false); },
+    this.http.get<any>(`${API}/users`).subscribe({
+      next: (res: any) => {
+        const users: UserRecord[] = Array.isArray(res) ? res : (res?.data ?? []);
+        this.users.set(users);
+        this.loading.set(false);
+      },
       error: () => { this.error.set('Failed to load users.'); this.loading.set(false); },
     });
   }
@@ -96,17 +96,16 @@ export class AdminUsersPage implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    this.http.post<ApiResponse<UserRecord>>(`${API}/users`, this.form.value).pipe(
-      map(r => r.data)
-    ).subscribe({
-      next: user => {
+    this.http.post<any>(`${API}/users`, this.form.value).subscribe({
+      next: (res: any) => {
+        const user: UserRecord = res?.data ?? res;
         this.users.update(list => [user, ...list]);
         this.success.set(`User "${user.username}" created successfully.`);
         this.form.reset({ role: 'USER' });
         this.showForm.set(false);
         this.saving.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error.set(err?.error?.message ?? 'Failed to create user.');
         this.saving.set(false);
       },
@@ -126,35 +125,33 @@ export class AdminUsersPage implements OnInit {
   saveEdit(user: UserRecord) {
     const role = this.editingRole();
     if (!role || role === user.role) { this.cancelEdit(); return; }
-    this.http.patch<ApiResponse<UserRecord>>(`${API}/users/${user.id}/role`, { role }).pipe(
-      map(r => r.data)
-    ).subscribe({
-      next: updated => {
+    this.http.patch<any>(`${API}/users/${user.id}/role`, { role }).subscribe({
+      next: (res: any) => {
+        const updated: UserRecord = res?.data ?? res;
         this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
         this.success.set(`Role updated for "${updated.username}".`);
         this.cancelEdit();
       },
-      error: (err) => { this.error.set(err?.error?.message ?? 'Failed to update role.'); this.cancelEdit(); },
+      error: (err: any) => { this.error.set(err?.error?.message ?? 'Failed to update role.'); this.cancelEdit(); },
     });
   }
 
   changeRole(user: UserRecord, event: Event) {
     const role = (event.target as HTMLSelectElement).value;
     if (role === user.role) return;
-    this.http.patch<ApiResponse<UserRecord>>(`${API}/users/${user.id}/role`, { role }).pipe(
-      map(r => r.data)
-    ).subscribe({
-      next: updated => {
+    this.http.patch<any>(`${API}/users/${user.id}/role`, { role }).subscribe({
+      next: (res: any) => {
+        const updated: UserRecord = res?.data ?? res;
         this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
         this.success.set(`Role updated for "${updated.username}".`);
       },
-      error: (err) => this.error.set(err?.error?.message ?? 'Failed to update role.'),
+      error: (err: any) => this.error.set(err?.error?.message ?? 'Failed to update role.'),
     });
   }
 
   deleteUser(id: number, username: string) {
     if (!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
-    this.http.delete<ApiResponse<void>>(`${API}/users/${id}`).subscribe({
+    this.http.delete<any>(`${API}/users/${id}`).subscribe({
       next: () => {
         this.users.update(list => list.filter(u => u.id !== id));
         this.success.set(`User "${username}" deleted.`);
