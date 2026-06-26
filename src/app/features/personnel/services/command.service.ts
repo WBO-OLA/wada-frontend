@@ -23,6 +23,10 @@ export class CommandService {
     return this.api.get<ApiResponse<Command[]>>(`${this.path}/${id}/children`).pipe(map(r => r.data));
   }
 
+  getDescendantIds(id: number): Observable<number[]> {
+    return this.api.get<ApiResponse<number[]>>(`${this.path}/${id}/descendants`).pipe(map(r => r.data));
+  }
+
   create(request: CommandRequest): Observable<Command> {
     return this.api.post<ApiResponse<Command>>(this.path, request).pipe(map(r => r.data));
   }

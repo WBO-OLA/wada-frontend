@@ -83,7 +83,40 @@
     }
   </nav>
 
-  <div class="p-4 border-t border-slate-700 text-xs text-slate-500">
+  <div class="p-4 border-t border-slate-700">
+    <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Command Filter</p>
+    <button
+      (click)="toggleCommandSelector()"
+      class="w-full text-left px-3 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs flex items-center justify-between transition-colors">
+      <span class="truncate">
+        {{ commandSelector.selected ? commandSelector.selected.name : 'All Commands' }}
+      </span>
+      <span class="ml-1 flex-shrink-0">{{ commandSelectorOpen ? '▲' : '▼' }}</span>
+    </button>
+
+    @if (commandSelectorOpen) {
+      <div class="mt-1 rounded-lg bg-slate-800 overflow-hidden max-h-52 overflow-y-auto">
+        <button
+          (click)="selectCommand(null)"
+          class="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-600 transition-colors"
+          [class.bg-slate-600]="!commandSelector.selected">
+          All Commands
+        </button>
+        @for (cmd of commandTree; track cmd.id) {
+          <button
+            (click)="selectCommand(cmd)"
+            class="w-full text-left py-1.5 text-xs text-slate-300 hover:bg-slate-600 transition-colors truncate"
+            [style.padding-left.px]="12 + cmd.depth * 12"
+            [class.bg-slate-600]="commandSelector.selected?.id === cmd.id">
+            <span class="text-slate-500">{{ cmd.depth > 0 ? '└ ' : '' }}</span>{{ cmd.name }}
+            <span class="text-slate-600 ml-1">{{ cmd.type }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="px-4 pb-3 text-xs text-slate-500">
     MOMS — Phase 6
   </div>
 </aside>

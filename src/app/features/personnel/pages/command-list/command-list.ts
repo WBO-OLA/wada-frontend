@@ -22,7 +22,7 @@ export class CommandList implements OnInit {
   error = signal('');
   editingId = signal<number | null>(null);
 
-  readonly types: CommandType[] = ['GLOBAL', 'REGION', 'UNIT'];
+  readonly types: CommandType[] = ['CHIEF', 'ZONE', 'REGION', 'UNIT'];
   readonly typeLabels = COMMAND_TYPE_LABELS;
 
   form = this.fb.group({

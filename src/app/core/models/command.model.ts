@@ -1,4 +1,4 @@
-export type CommandType = 'GLOBAL' | 'REGION' | 'UNIT';
+export type CommandType = 'CHIEF' | 'ZONE' | 'REGION' | 'UNIT';
 
 export interface Command {
   id?: number;
@@ -20,7 +20,8 @@ export interface CommandRequest {
 }
 
 export const COMMAND_TYPE_LABELS: Record<CommandType, string> = {
-  GLOBAL: 'Global',
+  CHIEF: 'Chief Command',
+  ZONE: 'Zone Command',
   REGION: 'Region',
   UNIT: 'Unit',
 };

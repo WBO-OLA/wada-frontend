@@ -8,16 +8,26 @@ export type MilitaryRank =
   | 'MAJOR' | 'LIEUTENANT_COLONEL' | 'COLONEL' | 'BRIGADIER_GENERAL'
   | 'MAJOR_GENERAL' | 'LIEUTENANT_GENERAL' | 'GENERAL';
 
-export type ActivityType = 'JOIN' | 'PROMOTION' | 'INJURY' | 'MISSION' | 'AWARD' | 'RETIREMENT';
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
+export type ActivityType = 'JOIN' | 'PROMOTION' | 'TRAINING' | 'INJURY' | 'MISSION' | 'AWARD' | 'RETIREMENT';
 
 export interface Member {
   id?: number;
   militaryId: string;
+  serviceNumber?: string;
+  codeName?: string;
   firstName: string;
   lastName: string;
+  gender?: Gender;
   nationalId?: string;
+  nationality?: string;
+  address?: string;
   phone?: string;
   email?: string;
+  photoPath?: string;
+  unit?: string;
+  role?: string;
   dateOfBirth?: string;
   joinDate?: string;
   rank: MilitaryRank;
@@ -108,6 +118,7 @@ export const RANK_LABELS: Record<MilitaryRank, string> = {
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   JOIN: 'Joined',
   PROMOTION: 'Promotion',
+  TRAINING: 'Training',
   INJURY: 'Injury',
   MISSION: 'Mission',
   AWARD: 'Award',
@@ -117,6 +128,7 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
 export const ACTIVITY_TYPE_COLORS: Record<ActivityType, string> = {
   JOIN: 'bg-blue-100 text-blue-700',
   PROMOTION: 'bg-amber-100 text-amber-700',
+  TRAINING: 'bg-purple-100 text-purple-700',
   INJURY: 'bg-orange-100 text-orange-700',
   MISSION: 'bg-indigo-100 text-indigo-700',
   AWARD: 'bg-green-100 text-green-700',

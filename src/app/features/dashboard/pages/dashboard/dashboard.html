@@ -1,5 +1,16 @@
 <div>
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+    @if (activeCommandName()) {
+      <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        {{ activeCommandName() }}
+      </span>
+    } @else {
+      <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500">
+        All Commands
+      </span>
+    }
+  </div>
 
   <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
     <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
