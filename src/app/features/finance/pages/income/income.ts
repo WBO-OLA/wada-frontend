@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Income, IncomeAggregate } from '../../../../core/models/finance.model';
 
 @Component({
@@ -14,6 +15,11 @@ import { Income, IncomeAggregate } from '../../../../core/models/finance.model';
 })
 export class IncomePage implements OnInit {
   private fb = inject(FormBuilder);
+  private financeService = inject(FinanceService);
+  private auth = inject(AuthService);
+
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
+
   form = this.fb.group({
     title: ['', Validators.required],
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
@@ -24,7 +30,6 @@ export class IncomePage implements OnInit {
     category: [''],
     receivedDate: [''],
     reference: [''],
-    recordedBy: ['', Validators.required],
     notes: [''],
   });
 
@@ -36,8 +41,6 @@ export class IncomePage implements OnInit {
   saving = signal(false);
   error = signal('');
   success = signal('');
-
-  private financeService = inject(FinanceService);
 
   ngOnInit() {
     this.load();
@@ -63,7 +66,8 @@ export class IncomePage implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    this.financeService.createIncome(this.form.value as any).subscribe({
+    const payload = { ...this.form.value, recordedBy: this.currentUser };
+    this.financeService.createIncome(payload as any).subscribe({
       next: () => {
         this.success.set('Income recorded.');
         this.form.reset({ currency: 'USD' });

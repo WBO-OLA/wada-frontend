@@ -1,4 +1,36 @@
 <div>
+  <!-- Capital Overview -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+      <p class="text-xs font-medium text-emerald-700 mb-1">Total Income</p>
+      <p class="text-xl font-bold text-emerald-800">{{ totalIncome() | currency:'USD':'symbol':'1.0-0' }}</p>
+      <p class="text-xs text-emerald-600 mt-1">All recorded income</p>
+    </div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <p class="text-xs font-medium text-blue-700 mb-1">Total Budgeted</p>
+      <p class="text-xl font-bold text-blue-800">{{ totalBudgeted() | currency:'USD':'symbol':'1.0-0' }}</p>
+      <p class="text-xs text-blue-600 mt-1">Across all budgets</p>
+    </div>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+      <p class="text-xs font-medium text-amber-700 mb-1">Total Spent</p>
+      <p class="text-xl font-bold text-amber-800">{{ totalSpent() | currency:'USD':'symbol':'1.0-0' }}</p>
+      <p class="text-xs text-amber-600 mt-1">Approved expenses</p>
+    </div>
+    <div class="rounded-xl p-4 border"
+         [class]="netCapital() >= 0 ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'">
+      <p class="text-xs font-medium mb-1"
+         [class]="netCapital() >= 0 ? 'text-green-700' : 'text-red-700'">Net Capital</p>
+      <p class="text-xl font-bold"
+         [class]="netCapital() >= 0 ? 'text-green-800' : 'text-red-800'">
+        {{ netCapital() | currency:'USD':'symbol':'1.0-0' }}
+      </p>
+      <p class="text-xs mt-1"
+         [class]="netCapital() >= 0 ? 'text-green-600' : 'text-red-600'">
+        {{ netCapital() >= 0 ? 'Income minus expenses' : 'Deficit' }}
+      </p>
+    </div>
+  </div>
+
   <!-- Finance tab nav -->
   <div class="flex gap-4 mb-6 border-b border-gray-200">
     <a routerLink="/finance/budget" routerLinkActive="border-slate-900 text-slate-900"
@@ -34,6 +66,10 @@
   @if (showForm()) {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
       <h2 class="text-base font-semibold text-gray-900 mb-4">New Budget</h2>
+      <div class="mb-4 flex items-center gap-2 text-xs text-gray-500">
+        <span class="px-2 py-1 bg-gray-100 rounded-md font-medium text-gray-700">{{ currentUser }}</span>
+        <span>will be recorded as creator</span>
+      </div>
       <form [formGroup]="form" (ngSubmit)="submitBudget()" class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Budget Name *</label>
@@ -55,12 +91,7 @@
           <input formControlName="department" type="text" placeholder="e.g. Logistics"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Created By</label>
-          <input formControlName="createdBy" type="text"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
-        </div>
-        <div>
+        <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
           <input formControlName="notes" type="text"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
@@ -96,19 +127,21 @@
               <p class="text-xs text-gray-500 mt-0.5">
                 FY{{ budget.fiscalYear }}
                 @if (budget.department) { · {{ budget.department }} }
+                @if (budget.createdBy) { · Created by {{ budget.createdBy }} }
+                @if (budget.approvedBy) { · Approved by {{ budget.approvedBy }} }
               </p>
             </div>
             <div class="flex items-center gap-3">
               <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(budget.status) }}">
                 {{ statusLabels[budget.status ?? 'DRAFT'] }}
               </span>
-              @if (budget.status === 'DRAFT') {
+              @if (budget.status === 'DRAFT' && canApprove) {
                 <button (click)="startApprove(budget.id!)"
                         class="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                   Activate
                 </button>
               }
-              @if (budget.status === 'ACTIVE') {
+              @if (budget.status === 'ACTIVE' && canApprove) {
                 <button (click)="closeBudget(budget.id!)"
                         class="text-xs px-3 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors">
                   Close
@@ -138,24 +171,20 @@
             </div>
           </div>
 
-          <!-- Activate approval form -->
+          <!-- Activate confirmation -->
           @if (approvingId() === budget.id) {
-            <div class="mt-4 pt-4 border-t border-gray-100">
-              <form [formGroup]="approveForm" (ngSubmit)="submitActivate(budget.id!)" class="flex gap-3 items-end">
-                <div class="flex-1">
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Approved By *</label>
-                  <input formControlName="approvedBy" type="text" placeholder="Authorizing officer name"
-                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
-                </div>
-                <button type="button" (click)="approvingId.set(null)"
-                        class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" [disabled]="approveForm.invalid || saving()"
-                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors">
-                  Confirm
-                </button>
-              </form>
+            <div class="mt-4 pt-4 border-t border-gray-100 flex gap-3 items-center">
+              <div class="flex-1 text-sm text-gray-700">
+                Activate this budget as <span class="font-semibold text-slate-900">{{ currentUser }}</span>?
+              </div>
+              <button type="button" (click)="approvingId.set(null)"
+                      class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="button" (click)="submitActivate(budget.id!)" [disabled]="saving()"
+                      class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors">
+                {{ saving() ? 'Activating...' : 'Confirm Activate' }}
+              </button>
             </div>
           }
         </div>

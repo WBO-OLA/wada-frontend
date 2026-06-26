@@ -60,4 +60,13 @@ export class AuthService {
   isAdmin(): boolean {
     return this.getRole() === 'ADMIN';
   }
+
+  isChief(): boolean {
+    return this.getRole() === 'CHIEF';
+  }
+
+  canApprove(): boolean {
+    const role = this.getRole();
+    return role === 'ADMIN' || role === 'CHIEF';
+  }
 }

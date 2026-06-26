@@ -1,10 +1,11 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import {
-  Budget, BudgetStatus,
+  Budget, BudgetStatus, Income, Expense,
   BUDGET_STATUS_LABELS, BUDGET_STATUS_COLORS
 } from '../../../../core/models/finance.model';
 
@@ -18,8 +19,11 @@ import {
 export class BudgetPage implements OnInit {
   private fb = inject(FormBuilder);
   private financeService = inject(FinanceService);
+  private auth = inject(AuthService);
 
   budgets = signal<Budget[]>([]);
+  incomes = signal<Income[]>([]);
+  approvedExpenses = signal<Expense[]>([]);
   loading = signal(false);
   showForm = signal(false);
   saving = signal(false);
@@ -30,21 +34,32 @@ export class BudgetPage implements OnInit {
   readonly statusLabels: Record<string, string> = BUDGET_STATUS_LABELS;
   readonly statusColors: Record<string, string> = BUDGET_STATUS_COLORS;
 
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
+  get canApprove(): boolean { return this.auth.canApprove(); }
+
+  totalIncome = computed(() => this.incomes().reduce((s, i) => s + (i.amount ?? 0), 0));
+  totalBudgeted = computed(() => this.budgets().reduce((s, b) => s + (b.totalAmount ?? 0), 0));
+  totalSpent = computed(() => this.approvedExpenses().reduce((s, e) => s + (e.amount ?? 0), 0));
+  netCapital = computed(() => this.totalIncome() - this.totalSpent());
+
   form = this.fb.group({
     name: ['', Validators.required],
     fiscalYear: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]],
     totalAmount: [null as number | null, [Validators.required, Validators.min(1)]],
     department: [''],
     description: [''],
-    createdBy: [''],
     notes: [''],
   });
 
-  approveForm = this.fb.group({
-    approvedBy: ['', Validators.required],
-  });
+  ngOnInit() {
+    this.load();
+    this.loadCapitalData();
+  }
 
-  ngOnInit() { this.load(); }
+  loadCapitalData() {
+    this.financeService.getIncomes().subscribe({ next: d => this.incomes.set(d), error: () => {} });
+    this.financeService.getExpenses('APPROVED').subscribe({ next: d => this.approvedExpenses.set(d), error: () => {} });
+  }
 
   load() {
     this.loading.set(true);
@@ -58,7 +73,8 @@ export class BudgetPage implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    this.financeService.createBudget(this.form.value as any).subscribe({
+    const payload = { ...this.form.value, createdBy: this.currentUser };
+    this.financeService.createBudget(payload as any).subscribe({
       next: () => {
         this.success.set('Budget created.');
         this.form.reset({ fiscalYear: new Date().getFullYear() });
@@ -75,19 +91,17 @@ export class BudgetPage implements OnInit {
 
   startApprove(id: number) {
     this.approvingId.set(id);
-    this.approveForm.reset();
   }
 
   submitActivate(id: number) {
-    if (this.approveForm.invalid) return;
     this.saving.set(true);
-    const approvedBy = this.approveForm.value.approvedBy!;
-    this.financeService.activateBudget(id, approvedBy).subscribe({
+    this.financeService.activateBudget(id, this.currentUser).subscribe({
       next: () => {
         this.success.set('Budget activated.');
         this.approvingId.set(null);
         this.saving.set(false);
         this.load();
+        this.loadCapitalData();
       },
       error: (err: any) => {
         this.error.set(err?.error?.message ?? 'Error activating budget.');
@@ -97,7 +111,7 @@ export class BudgetPage implements OnInit {
   }
 
   closeBudget(id: number) {
-    this.financeService.closeBudget(id, 'admin').subscribe({
+    this.financeService.closeBudget(id, this.currentUser).subscribe({
       next: () => { this.success.set('Budget closed.'); this.load(); },
       error: (err: any) => this.error.set(err?.error?.message ?? 'Error closing budget.'),
     });

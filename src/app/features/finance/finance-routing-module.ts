@@ -6,7 +6,7 @@ import { Expenses } from './pages/expenses/expenses';
 import { LedgerPage } from './pages/ledger/ledger';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'income', pathMatch: 'full' },
+  { path: '', redirectTo: 'budget', pathMatch: 'full' },
   { path: 'income', component: IncomePage },
   { path: 'budget', component: BudgetPage },
   { path: 'expenses', component: Expenses },

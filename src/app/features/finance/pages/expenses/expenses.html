@@ -34,6 +34,10 @@
   @if (showForm()) {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
       <h2 class="text-base font-semibold text-gray-900 mb-4">Submit Expense</h2>
+      <div class="mb-4 flex items-center gap-2 text-xs text-gray-500">
+        <span class="px-2 py-1 bg-gray-100 rounded-md font-medium text-gray-700">{{ currentUser }}</span>
+        <span>will be recorded as submitter</span>
+      </div>
       <form [formGroup]="form" (ngSubmit)="submitExpense()" class="grid grid-cols-2 gap-4">
         <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Title *</label>
@@ -63,16 +67,11 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Submitted By *</label>
-          <input formControlName="submittedBy" type="text"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
-        </div>
-        <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Reference</label>
           <input formControlName="reference" type="text"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
-        <div>
+        <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
           <input formControlName="notes" type="text"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
@@ -151,9 +150,12 @@
                 <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(exp.status) }}">
                   {{ statusLabels[exp.status ?? 'PENDING'] }}
                 </span>
+                @if (exp.approvedBy) {
+                  <div class="text-xs text-gray-400 mt-0.5">by {{ exp.approvedBy }}</div>
+                }
               </td>
               <td class="px-5 py-3">
-                @if (exp.status === 'PENDING') {
+                @if (exp.status === 'PENDING' && canApprove) {
                   <div class="flex gap-2">
                     <button (click)="startAction(exp.id!, 'approve')"
                             class="text-xs px-2.5 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
@@ -164,13 +166,15 @@
                       Reject
                     </button>
                   </div>
+                } @else if (exp.status === 'PENDING' && !canApprove) {
+                  <span class="text-xs text-gray-400 italic">Awaiting approval</span>
                 }
                 @if (exp.status === 'REJECTED' && exp.rejectionReason) {
                   <span class="text-xs text-gray-400 italic">{{ exp.rejectionReason }}</span>
                 }
               </td>
             </tr>
-            <!-- inline approval/rejection form -->
+            <!-- inline approval/rejection row -->
             @if (actionId() === exp.id) {
               <tr class="bg-amber-50">
                 <td colspan="7" class="px-5 py-4">
@@ -187,31 +191,29 @@
                       }
                     </div>
                   }
-                  <form [formGroup]="approvalForm" (ngSubmit)="submitAction()" class="flex gap-3 items-end flex-wrap">
-                    <div class="flex-1 min-w-40">
-                      <label class="block text-xs font-medium text-gray-700 mb-1">
-                        {{ actionType() === 'approve' ? 'Approved By *' : 'Rejected By *' }}
-                      </label>
-                      <input formControlName="approvedBy" type="text"
-                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
-                    </div>
+                  <div class="flex gap-3 items-center flex-wrap">
+                    <span class="text-sm text-gray-700">
+                      {{ actionType() === 'approve' ? 'Approve' : 'Reject' }} as
+                      <span class="font-semibold text-slate-900">{{ currentUser }}</span>?
+                    </span>
                     @if (actionType() === 'reject') {
-                      <div class="flex-1 min-w-40">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
-                        <input formControlName="rejectionReason" type="text"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
-                      </div>
+                      <form [formGroup]="rejectionForm" class="flex gap-3 items-center flex-1">
+                        <div class="flex-1 min-w-40">
+                          <input formControlName="rejectionReason" type="text" placeholder="Reason (optional)"
+                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                        </div>
+                      </form>
                     }
                     <button type="button" (click)="actionId.set(null)"
                             class="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
                       Cancel
                     </button>
-                    <button type="submit" [disabled]="approvalForm.invalid || saving()"
+                    <button type="button" (click)="submitAction()" [disabled]="saving()"
                             [class]="actionType() === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
                             class="px-4 py-2 text-sm text-white rounded-lg disabled:opacity-50 transition-colors">
                       Confirm {{ actionType() === 'approve' ? 'Approval' : 'Rejection' }}
                     </button>
-                  </form>
+                  </div>
                 </td>
               </tr>
             }

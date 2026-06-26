@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import {
   Expense, Budget, ExpenseStatus,
   EXPENSE_STATUS_LABELS, EXPENSE_STATUS_COLORS
@@ -18,6 +19,7 @@ import {
 export class Expenses implements OnInit {
   private fb = inject(FormBuilder);
   private financeService = inject(FinanceService);
+  private auth = inject(AuthService);
 
   expenses = signal<Expense[]>([]);
   budgets = signal<Budget[]>([]);
@@ -30,6 +32,9 @@ export class Expenses implements OnInit {
   actionId = signal<number | null>(null);
   actionType = signal<'approve' | 'reject'>('approve');
 
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
+  get canApprove(): boolean { return this.auth.canApprove(); }
+
   readonly statuses: ExpenseStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'];
   readonly statusLabels: Record<string, string> = EXPENSE_STATUS_LABELS;
   readonly statusColors: Record<string, string> = EXPENSE_STATUS_COLORS;
@@ -40,13 +45,11 @@ export class Expenses implements OnInit {
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     category: [''],
     budgetId: [null as number | null],
-    submittedBy: ['', Validators.required],
     reference: [''],
     notes: [''],
   });
 
-  approvalForm = this.fb.group({
-    approvedBy: ['', Validators.required],
+  rejectionForm = this.fb.group({
     rejectionReason: [''],
   });
 
@@ -80,7 +83,8 @@ export class Expenses implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    this.financeService.createExpense(this.form.value as any).subscribe({
+    const payload = { ...this.form.value, submittedBy: this.currentUser };
+    this.financeService.createExpense(payload as any).subscribe({
       next: () => {
         this.success.set('Expense submitted.');
         this.form.reset();
@@ -98,16 +102,15 @@ export class Expenses implements OnInit {
   startAction(id: number, type: 'approve' | 'reject') {
     this.actionId.set(id);
     this.actionType.set(type);
-    this.approvalForm.reset();
+    this.rejectionForm.reset();
   }
 
   submitAction() {
-    if (this.approvalForm.invalid) return;
     this.saving.set(true);
     const id = this.actionId()!;
     const request = {
-      approvedBy: this.approvalForm.value.approvedBy!,
-      rejectionReason: this.approvalForm.value.rejectionReason ?? undefined,
+      approvedBy: this.currentUser,
+      rejectionReason: this.rejectionForm.value.rejectionReason ?? undefined,
     };
     const obs = this.actionType() === 'approve'
       ? this.financeService.approveExpense(id, request)
