@@ -112,6 +112,17 @@ export class BudgetPage implements OnInit {
     return Math.min(100, Math.round(((budget.allocatedAmount ?? 0) / budget.totalAmount) * 100));
   }
 
+  remainingAmount(budget: Budget): number {
+    return (budget.totalAmount ?? 0) - (budget.allocatedAmount ?? 0);
+  }
+
+  remainingClass(budget: Budget): string {
+    const pct = this.usedPercent(budget);
+    if (pct >= 100) return 'text-red-600';
+    if (pct >= 75)  return 'text-amber-600';
+    return 'text-green-600';
+  }
+
   formatCurrency(val: number | undefined): string {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val ?? 0);
   }

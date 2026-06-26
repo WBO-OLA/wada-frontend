@@ -52,8 +52,12 @@ export class Expenses implements OnInit {
 
   ngOnInit() {
     this.load();
+    this.loadBudgets();
+  }
+
+  loadBudgets() {
     this.financeService.getBudgets().subscribe({
-      next: data => this.budgets.set(data.filter(b => b.status === 'ACTIVE')),
+      next: data => this.budgets.set(data),
       error: () => {},
     });
   }
@@ -114,6 +118,7 @@ export class Expenses implements OnInit {
         this.actionId.set(null);
         this.saving.set(false);
         this.load();
+        this.loadBudgets();
       },
       error: (err: any) => {
         this.error.set(err?.error?.message ?? 'Error processing expense.');
@@ -124,5 +129,16 @@ export class Expenses implements OnInit {
 
   statusClass(status: ExpenseStatus | undefined): string {
     return this.statusColors[status ?? 'PENDING'];
+  }
+
+  budgetForExpense(budgetId: number | undefined): Budget | undefined {
+    if (budgetId == null) return undefined;
+    return this.budgets().find(b => b.id === budgetId);
+  }
+
+  budgetRemaining(budgetId: number | undefined): number {
+    const bgt = this.budgetForExpense(budgetId);
+    if (!bgt) return 0;
+    return (bgt.totalAmount ?? 0) - (bgt.allocatedAmount ?? 0);
   }
 }
