@@ -48,6 +48,8 @@ export class AdminUsersPage implements OnInit {
   showForm = signal(false);
   error = signal('');
   success = signal('');
+  editingUserId = signal<number | null>(null);
+  editingRole = signal('');
 
   readonly roleColors = ROLE_COLORS;
 
@@ -108,6 +110,31 @@ export class AdminUsersPage implements OnInit {
         this.error.set(err?.error?.message ?? 'Failed to create user.');
         this.saving.set(false);
       },
+    });
+  }
+
+  startEdit(user: UserRecord) {
+    this.editingUserId.set(user.id);
+    this.editingRole.set(user.role);
+  }
+
+  cancelEdit() {
+    this.editingUserId.set(null);
+    this.editingRole.set('');
+  }
+
+  saveEdit(user: UserRecord) {
+    const role = this.editingRole();
+    if (!role || role === user.role) { this.cancelEdit(); return; }
+    this.http.patch<ApiResponse<UserRecord>>(`${API}/users/${user.id}/role`, { role }).pipe(
+      map(r => r.data)
+    ).subscribe({
+      next: updated => {
+        this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
+        this.success.set(`Role updated for "${updated.username}".`);
+        this.cancelEdit();
+      },
+      error: (err) => { this.error.set(err?.error?.message ?? 'Failed to update role.'); this.cancelEdit(); },
     });
   }
 

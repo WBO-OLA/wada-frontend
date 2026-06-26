@@ -103,33 +103,54 @@
                 </td>
                 <td class="px-4 py-3 text-gray-500 hidden sm:table-cell">{{ user.email }}</td>
                 <td class="px-4 py-3">
-                  @if (canManageAll) {
-                    <select [value]="user.role" (change)="changeRole(user, $event)"
-                            class="text-xs border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
-                            [ngClass]="roleColor(user.role)">
-                      @for (r of editableRoles; track r) {
-                        <option [value]="r">{{ r }}</option>
-                      }
-                    </select>
-                  } @else {
-                    <span class="px-2 py-0.5 text-xs rounded-full font-semibold border"
-                          [ngClass]="roleColor(user.role)">
-                      {{ user.role }}
-                    </span>
-                  }
+                  <span class="px-2 py-0.5 text-xs rounded-full font-semibold border"
+                        [ngClass]="roleColor(user.role)">
+                    {{ user.role }}
+                  </span>
                 </td>
                 <td class="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{{ formatDate(user.createdAt) }}</td>
                 <td class="px-4 py-3 text-right">
-                  @if (canManageAll && user.username !== currentUser) {
-                    <button (click)="deleteUser(user.id, user.username)"
-                            class="text-xs text-red-500 hover:text-red-700 transition font-medium">
-                      Delete
-                    </button>
-                  } @else if (user.username === currentUser) {
+                  @if (user.username === currentUser) {
                     <span class="text-xs text-gray-300 italic">You</span>
+                  } @else if (canManageAll) {
+                    <div class="flex items-center justify-end gap-3">
+                      <button (click)="startEdit(user)"
+                              class="text-xs text-slate-600 hover:text-slate-900 transition font-medium">
+                        Edit
+                      </button>
+                      <button (click)="deleteUser(user.id, user.username)"
+                              class="text-xs text-red-500 hover:text-red-700 transition font-medium">
+                        Delete
+                      </button>
+                    </div>
                   }
                 </td>
               </tr>
+
+              <!-- Inline edit row -->
+              @if (canManageAll && editingUserId() === user.id) {
+                <tr class="bg-slate-50 border-t border-slate-100">
+                  <td colspan="5" class="px-4 py-3">
+                    <div class="flex items-center gap-3 flex-wrap">
+                      <span class="text-xs font-medium text-gray-600">Change role for <strong>{{ user.username }}</strong>:</span>
+                      <select [value]="editingRole()" (change)="editingRole.set($any($event.target).value)"
+                              class="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        @for (r of editableRoles; track r) {
+                          <option [value]="r" [selected]="r === editingRole()">{{ r }}</option>
+                        }
+                      </select>
+                      <button (click)="saveEdit(user)"
+                              class="px-3 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium">
+                        Save
+                      </button>
+                      <button (click)="cancelEdit()"
+                              class="px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                        Cancel
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
