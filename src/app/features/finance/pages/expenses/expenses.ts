@@ -1,6 +1,6 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -12,7 +12,7 @@ import {
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './expenses.html',
   styleUrl: './expenses.css',
 })
@@ -29,8 +29,19 @@ export class Expenses implements OnInit {
   error = signal('');
   success = signal('');
   filterStatus = signal('');
+  searchTerm = signal('');
   actionId = signal<number | null>(null);
   actionType = signal<'approve' | 'reject'>('approve');
+
+  filteredExpenses = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.expenses();
+    return this.expenses().filter(e =>
+      e.title.toLowerCase().includes(term) ||
+      (e.category ?? '').toLowerCase().includes(term) ||
+      (e.submittedBy ?? '').toLowerCase().includes(term)
+    );
+  });
 
   get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
   get canApprove(): boolean { return this.auth.canApprove(); }
@@ -76,7 +87,19 @@ export class Expenses implements OnInit {
 
   applyFilter(status: string) {
     this.filterStatus.set(status);
+    this.searchTerm.set('');
     this.load();
+  }
+
+  cancelExpense(id: number) {
+    if (!confirm('Cancel this expense? This cannot be undone.')) return;
+    this.financeService.cancelExpense(id).subscribe({
+      next: updated => {
+        this.expenses.update(list => list.map(e => e.id === updated.id ? updated : e));
+        this.success.set('Expense cancelled.');
+      },
+      error: (err: any) => this.error.set(err?.error?.message ?? 'Error cancelling expense.'),
+    });
   }
 
   submitExpense() {

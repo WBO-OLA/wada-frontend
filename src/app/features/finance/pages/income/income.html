@@ -7,10 +7,12 @@
               class="px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50 transition-colors">
         {{ showAggregate() ? 'Hide Aggregation' : 'View Aggregation' }}
       </button>
-      <button (click)="showForm.set(!showForm())"
-              class="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-        {{ showForm() ? 'Cancel' : '+ Record Income' }}
-      </button>
+      @if (canEdit) {
+        <button (click)="showForm.set(!showForm())"
+                class="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
+          {{ showForm() ? 'Cancel' : '+ Record Income' }}
+        </button>
+      }
     </div>
   </div>
 
@@ -50,15 +52,15 @@
   }
 
   <!-- Record income form -->
-  @if (showForm()) {
+  @if (showForm() && canEdit) {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
       <h2 class="text-base font-semibold text-gray-900 mb-4">Record Income</h2>
       <div class="mb-4 flex items-center gap-2 text-xs text-gray-500">
         <span class="px-2 py-1 bg-gray-100 rounded-md font-medium text-gray-700">{{ currentUser }}</span>
         <span>will be recorded as recorder</span>
       </div>
-      <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-2 gap-4">
-        <div class="col-span-2">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="col-span-1 sm:col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Title *</label>
           <input formControlName="title" type="text" placeholder="e.g. Italy Group Q2 Contribution"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
@@ -109,7 +111,7 @@
           <input formControlName="reference" type="text"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
-        <div class="col-span-2 flex justify-end gap-3 pt-2">
+        <div class="col-span-1 sm:col-span-2 flex justify-end gap-3 pt-2">
           <button type="button" (click)="showForm.set(false)"
                   class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Cancel
@@ -123,12 +125,39 @@
     </div>
   }
 
+  <!-- Search & filters -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-4">
+    <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" [ngModelOptions]="{standalone: true}"
+           type="text" placeholder="Search by title, group or country..."
+           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+    <select [ngModel]="communityGroupFilter()" (ngModelChange)="communityGroupFilter.set($event)" [ngModelOptions]="{standalone: true}"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+      <option value="">All Groups</option>
+      @for (g of uniqueGroups(); track g) {
+        <option [value]="g">{{ g }}</option>
+      }
+    </select>
+    <select [ngModel]="countryFilter()" (ngModelChange)="countryFilter.set($event)" [ngModelOptions]="{standalone: true}"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+      <option value="">All Countries</option>
+      @for (c of uniqueCountries(); track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+    @if (searchTerm() || communityGroupFilter() || countryFilter()) {
+      <button (click)="clearFilters()"
+              class="px-3 py-2 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
+        Clear filters
+      </button>
+    }
+  </div>
+
   <!-- Income table -->
   @if (loading()) {
     <div class="text-center py-10 text-gray-400 text-sm">Loading income records...</div>
-  } @else if (incomes().length === 0) {
+  } @else if (filteredIncomes().length === 0) {
     <div class="bg-white rounded-xl p-10 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
-      No income records yet.
+      {{ incomes().length === 0 ? 'No income records yet.' : 'No records match the current filters.' }}
     </div>
   } @else {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -138,29 +167,31 @@
           <tr>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Title</th>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Amount</th>
-            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Group</th>
-            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Country</th>
-            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Date Received</th>
-            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Recorded By</th>
+            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Group</th>
+            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Country</th>
+            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Date Received</th>
+            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Recorded By</th>
             <th class="px-5 py-3"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-          @for (income of incomes(); track income.id) {
+          @for (income of filteredIncomes(); track income.id) {
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="px-5 py-3 font-medium text-gray-900">{{ income.title }}</td>
-              <td class="px-5 py-3 text-green-700 font-medium">
+              <td class="px-5 py-3 text-green-700 font-medium whitespace-nowrap">
                 {{ income.amount | currency:(income.currency ?? 'USD') }}
               </td>
-              <td class="px-5 py-3 text-gray-600">{{ income.communityGroup || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ income.country || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ income.receivedDate || '—' }}</td>
-              <td class="px-5 py-3 text-gray-500">{{ income.recordedBy }}</td>
+              <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ income.communityGroup || '—' }}</td>
+              <td class="px-5 py-3 text-gray-500 hidden sm:table-cell">{{ income.country || '—' }}</td>
+              <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ income.receivedDate || '—' }}</td>
+              <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ income.recordedBy }}</td>
               <td class="px-5 py-3 text-right">
-                <button (click)="delete(income.id!)"
-                        class="text-xs text-red-500 hover:text-red-700 transition-colors">
-                  Delete
-                </button>
+                @if (canApprove) {
+                  <button (click)="delete(income.id!)"
+                          class="text-xs text-red-500 hover:text-red-700 transition-colors">
+                    Delete
+                  </button>
+                }
               </td>
             </tr>
           }
@@ -168,5 +199,6 @@
       </table>
       </div>
     </div>
+    <p class="mt-2 text-xs text-gray-400">{{ filteredIncomes().length }} of {{ incomes().length }} records</p>
   }
 </div>

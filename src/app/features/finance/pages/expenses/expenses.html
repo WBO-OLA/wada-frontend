@@ -90,28 +90,33 @@
     </div>
   }
 
-  <!-- Status filter -->
-  <div class="flex gap-2 mb-4 flex-wrap">
-    <button (click)="applyFilter('')"
-            [class]="filterStatus() === '' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
-            class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
-      All
-    </button>
-    @for (s of statuses; track s) {
-      <button (click)="applyFilter(s)"
-              [class]="filterStatus() === s ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+  <!-- Status filter + search -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-4">
+    <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" [ngModelOptions]="{standalone: true}"
+           type="text" placeholder="Search by title, category or submitter..."
+           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+    <div class="flex gap-2 flex-wrap">
+      <button (click)="applyFilter('')"
+              [class]="filterStatus() === '' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
               class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
-        {{ statusLabels[s] }}
+        All
       </button>
-    }
+      @for (s of statuses; track s) {
+        <button (click)="applyFilter(s)"
+                [class]="filterStatus() === s ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+                class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+          {{ statusLabels[s] }}
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Expenses table -->
   @if (loading()) {
     <div class="text-center py-10 text-gray-400 text-sm">Loading expenses...</div>
-  } @else if (expenses().length === 0) {
+  } @else if (filteredExpenses().length === 0) {
     <div class="bg-white rounded-xl p-10 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
-      No expenses found.
+      {{ expenses().length === 0 ? 'No expenses found.' : 'No expenses match the current filters.' }}
     </div>
   } @else {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -129,7 +134,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-          @for (exp of expenses(); track exp.id) {
+          @for (exp of filteredExpenses(); track exp.id) {
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="px-5 py-3 font-medium text-gray-900">{{ exp.title }}</td>
               <td class="px-5 py-3 text-gray-700 font-medium">{{ exp.amount | currency }}</td>
@@ -157,7 +162,7 @@
               </td>
               <td class="px-5 py-3">
                 @if (exp.status === 'PENDING' && canApprove) {
-                  <div class="flex gap-2">
+                  <div class="flex gap-2 flex-wrap">
                     <button (click)="startAction(exp.id!, 'approve')"
                             class="text-xs px-2.5 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
                       Approve
@@ -165,6 +170,10 @@
                     <button (click)="startAction(exp.id!, 'reject')"
                             class="text-xs px-2.5 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
                       Reject
+                    </button>
+                    <button (click)="cancelExpense(exp.id!)"
+                            class="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors">
+                      Cancel
                     </button>
                   </div>
                 } @else if (exp.status === 'PENDING' && !canApprove) {

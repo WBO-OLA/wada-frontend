@@ -36,6 +36,7 @@ export class BudgetPage implements OnInit {
 
   get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
   get canApprove(): boolean { return this.auth.canApprove(); }
+  get canEdit(): boolean { return this.auth.canEdit(); }
 
   totalIncome = computed(() => this.incomes().reduce((s, i) => s + (i.amount ?? 0), 0));
   totalBudgeted = computed(() => this.budgets().reduce((s, b) => s + (b.totalAmount ?? 0), 0));
@@ -114,6 +115,14 @@ export class BudgetPage implements OnInit {
     this.financeService.closeBudget(id, this.currentUser).subscribe({
       next: () => { this.success.set('Budget closed.'); this.load(); },
       error: (err: any) => this.error.set(err?.error?.message ?? 'Error closing budget.'),
+    });
+  }
+
+  deleteBudget(id: number) {
+    if (!confirm('Delete this draft budget? This cannot be undone.')) return;
+    this.financeService.deleteBudget(id).subscribe({
+      next: () => { this.success.set('Budget deleted.'); this.load(); },
+      error: (err: any) => this.error.set(err?.error?.message ?? 'Error deleting budget.'),
     });
   }
 
