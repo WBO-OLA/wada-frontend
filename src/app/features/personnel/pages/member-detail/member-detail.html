@@ -21,14 +21,16 @@
           <span class="px-3 py-1 rounded-full text-xs font-medium {{ statusColors[member()!.status] }}">
             {{ statusLabels[member()!.status] }}
           </span>
-          <a [routerLink]="['/personnel', member()!.id, 'edit']"
-             class="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">
-            Edit
-          </a>
+          @if (canEdit) {
+            <a [routerLink]="['/personnel', member()!.id, 'edit']"
+               class="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">
+              Edit
+            </a>
+          }
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-sm">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-sm">
         <div>
           <p class="text-xs text-gray-500">Rank</p>
           <p class="font-medium text-gray-900 mt-0.5">{{ rankLabels[member()!.rank] }}</p>
@@ -70,7 +72,7 @@
           <span>Activity Timeline <span class="text-gray-400 font-normal">({{ activities().length }})</span></span>
           <span class="text-gray-400 text-xs">{{ showActivities() ? '▲ Collapse' : '▼ Expand' }}</span>
         </button>
-        @if (showActivities()) {
+        @if (showActivities() && canEdit) {
           <button (click)="showActivityForm.set(!showActivityForm())"
                   class="ml-4 text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
             {{ showActivityForm() ? 'Cancel' : '+ Add' }}
@@ -138,8 +140,10 @@
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0 ml-3">
                     <span class="text-gray-400 whitespace-nowrap">{{ formatDate(a.activityDate) }}</span>
-                    <button (click)="deleteActivity(a.id!)"
-                            class="text-red-400 hover:text-red-600 transition">✕</button>
+                    @if (canEdit) {
+                      <button (click)="deleteActivity(a.id!)"
+                              class="text-red-400 hover:text-red-600 transition">✕</button>
+                    }
                   </div>
                 </div>
               }
@@ -153,10 +157,12 @@
     <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="font-semibold text-gray-900 text-sm">Documents</h3>
-        <button (click)="showUpload.set(!showUpload())"
-                class="text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
-          {{ showUpload() ? 'Cancel' : '+ Upload' }}
-        </button>
+        @if (canEdit) {
+          <button (click)="showUpload.set(!showUpload())"
+                  class="text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+            {{ showUpload() ? 'Cancel' : '+ Upload' }}
+          </button>
+        }
       </div>
 
       @if (docError()) {
@@ -178,16 +184,15 @@
                 <p class="text-xs text-gray-500 mt-1">{{ selectedFile()!.name }} ({{ formatBytes(selectedFile()!.size) }})</p>
               }
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
                 <input formControlName="description" type="text"
                        class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Uploaded By</label>
-                <input formControlName="uploadedBy" type="text"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                <label class="block text-xs font-medium text-gray-700 mb-1">Uploading as</label>
+                <p class="px-3 py-1.5 text-xs bg-gray-100 rounded-lg text-gray-700 font-medium">{{ currentUser }}</p>
               </div>
             </div>
             <div class="flex justify-end">
@@ -227,10 +232,12 @@
                    class="text-xs px-2.5 py-1 text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors">
                   Download
                 </a>
-                <button (click)="deleteDocument(doc.id!)"
-                        class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors">
-                  Delete
-                </button>
+                @if (canEdit) {
+                  <button (click)="deleteDocument(doc.id!)"
+                          class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors">
+                    Delete
+                  </button>
+                }
               </div>
             </div>
           }

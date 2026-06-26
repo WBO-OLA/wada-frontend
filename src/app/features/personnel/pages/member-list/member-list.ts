@@ -1,9 +1,13 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../services/member.service';
-import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS } from '../../../../core/models/member.model';
+import { CommandService } from '../../services/command.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS, MilitaryRank } from '../../../../core/models/member.model';
+import { CommandWithDepth } from '../../../../core/models/command.model';
+import { buildCommandTree } from '../../../../core/utils/command-tree';
 
 @Component({
   selector: 'app-member-list',
@@ -12,11 +16,26 @@ import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS } from '../../../../co
   styleUrl: './member-list.css',
 })
 export class MemberList implements OnInit {
+  private memberService = inject(MemberService);
+  private commandService = inject(CommandService);
+  private auth = inject(AuthService);
+
   members = signal<Member[]>([]);
+  commands = signal<CommandWithDepth[]>([]);
   loading = signal(true);
+
+  searchTerm = '';
   statusFilter = '';
+  rankFilter = '';
+  commandFilter = '';
 
   readonly statusOptions: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
+  readonly rankOptions: MilitaryRank[] = [
+    'RECRUIT', 'PRIVATE', 'CORPORAL', 'SERGEANT', 'STAFF_SERGEANT',
+    'WARRANT_OFFICER', 'SECOND_LIEUTENANT', 'FIRST_LIEUTENANT', 'CAPTAIN',
+    'MAJOR', 'LIEUTENANT_COLONEL', 'COLONEL', 'BRIGADIER_GENERAL',
+    'MAJOR_GENERAL', 'LIEUTENANT_GENERAL', 'GENERAL',
+  ];
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
 
@@ -27,23 +46,46 @@ export class MemberList implements OnInit {
     PASSED_AWAY: 'bg-red-100 text-red-700',
   };
 
-  constructor(private memberService: MemberService) {}
+  get canEdit(): boolean { return this.auth.canEdit(); }
+
+  filteredMembers = computed(() => {
+    let list = this.members();
+    const term = this.searchTerm.trim().toLowerCase();
+    if (term) {
+      list = list.filter(m =>
+        m.firstName.toLowerCase().includes(term) ||
+        m.lastName.toLowerCase().includes(term) ||
+        m.militaryId.toLowerCase().includes(term)
+      );
+    }
+    if (this.statusFilter) list = list.filter(m => m.status === this.statusFilter);
+    if (this.rankFilter)   list = list.filter(m => m.rank === this.rankFilter);
+    if (this.commandFilter) list = list.filter(m => String(m.command?.id) === this.commandFilter);
+    return list;
+  });
 
   ngOnInit() {
     this.load();
+    this.commandService.getAll().subscribe(cmds => this.commands.set(buildCommandTree(cmds)));
   }
 
   load() {
     this.loading.set(true);
-    const params = this.statusFilter ? { status: this.statusFilter } : undefined;
-    this.memberService.getAll(params).subscribe({
+    this.memberService.getAll().subscribe({
       next: members => { this.members.set(members); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
 
+  clearFilters() {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.rankFilter = '';
+    this.commandFilter = '';
+  }
+
   delete(id: number) {
-    if (!confirm('Delete this member?')) return;
+    if (!confirm('Delete this member? This cannot be undone.')) return;
     this.memberService.remove(id).subscribe(() => this.load());
   }
 }

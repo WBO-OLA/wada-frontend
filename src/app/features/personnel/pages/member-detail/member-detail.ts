@@ -28,7 +28,7 @@ export class MemberDetail implements OnInit {
   private route = inject(ActivatedRoute);
   protected auth = inject(AuthService);
 
-  uploadForm = this.fb.group({ description: [''], uploadedBy: [''] });
+  uploadForm = this.fb.group({ description: [''] });
   activityForm = this.fb.group({
     title: ['', Validators.required],
     description: [''],
@@ -86,10 +86,14 @@ export class MemberDetail implements OnInit {
     PASSED_AWAY: 'bg-red-100 text-red-700',
   };
 
+  get canEdit(): boolean { return this.auth.canEdit(); }
+
   get canViewMedical(): boolean {
     const r = this.auth.getRole();
-    return r === 'ADMIN' || r === 'MANAGER';
+    return r === 'ADMIN' || r === 'CHIEF' || r === 'MANAGER';
   }
+
+  get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
 
   constructor() {}
 
@@ -186,9 +190,9 @@ export class MemberDetail implements OnInit {
     if (!this.selectedFile() || !this.member()?.id) return;
     this.uploading.set(true);
     this.docError.set('');
-    const { description, uploadedBy } = this.uploadForm.value;
+    const { description } = this.uploadForm.value;
     this.documentService.upload(
-      this.member()!.id!, this.selectedFile()!, description ?? '', uploadedBy ?? ''
+      this.member()!.id!, this.selectedFile()!, description ?? '', this.currentUser
     ).subscribe({
       next: () => {
         this.docSuccess.set('Document uploaded.');

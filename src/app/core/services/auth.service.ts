@@ -69,4 +69,9 @@ export class AuthService {
     const role = this.getRole();
     return role === 'ADMIN' || role === 'CHIEF';
   }
+
+  canEdit(): boolean {
+    const role = this.getRole();
+    return role === 'ADMIN' || role === 'CHIEF' || role === 'MANAGER';
+  }
 }

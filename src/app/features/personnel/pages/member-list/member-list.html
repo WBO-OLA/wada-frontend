@@ -1,63 +1,115 @@
 <div>
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
     <h1 class="text-2xl font-bold text-gray-900">Personnel</h1>
-    <a routerLink="new"
-       class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
-      + Register Member
-    </a>
+    @if (canEdit) {
+      <a routerLink="new"
+         class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
+        + Register Member
+      </a>
+    }
   </div>
 
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-4 border-b border-gray-100">
-      <select [(ngModel)]="statusFilter" (ngModelChange)="load()"
-              class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <input [(ngModel)]="searchTerm" type="text" placeholder="Search name or ID..."
+             class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+
+      <select [(ngModel)]="statusFilter"
+              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
         <option value="">All statuses</option>
         @for (s of statusOptions; track s) {
           <option [value]="s">{{ statusLabels[s] }}</option>
         }
       </select>
+
+      <select [(ngModel)]="rankFilter"
+              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+        <option value="">All ranks</option>
+        @for (r of rankOptions; track r) {
+          <option [value]="r">{{ rankLabels[r] }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="commandFilter"
+              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+        <option value="">All commands</option>
+        @for (c of commands(); track c.id) {
+          <option [value]="c.id">{{ '— '.repeat(c.depth) }}{{ c.name }}</option>
+        }
+      </select>
     </div>
 
+    @if (searchTerm || statusFilter || rankFilter || commandFilter) {
+      <div class="mt-3 flex items-center gap-2">
+        <span class="text-xs text-gray-500">{{ filteredMembers().length }} result{{ filteredMembers().length !== 1 ? 's' : '' }}</span>
+        <button (click)="clearFilters()" class="text-xs text-slate-600 underline hover:text-slate-900">Clear filters</button>
+      </div>
+    }
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     @if (loading()) {
       <div class="p-12 text-center text-gray-400 text-sm">Loading members...</div>
-    } @else if (members().length === 0) {
-      <div class="p-12 text-center text-gray-400 text-sm">No members found.</div>
+    } @else if (filteredMembers().length === 0) {
+      <div class="p-12 text-center text-gray-400 text-sm">
+        {{ members().length === 0 ? 'No members registered yet.' : 'No members match your filters.' }}
+      </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider border-b border-gray-100">
             <tr>
-              <th class="px-6 py-3 text-left">Military ID</th>
-              <th class="px-6 py-3 text-left">Name</th>
-              <th class="px-6 py-3 text-left">Rank</th>
-              <th class="px-6 py-3 text-left">Command</th>
-              <th class="px-6 py-3 text-left">Status</th>
-              <th class="px-6 py-3 text-left">Joined</th>
-              <th class="px-6 py-3 text-right">Actions</th>
+              <th class="px-4 py-3 text-left">Member</th>
+              <th class="px-4 py-3 text-left hidden sm:table-cell">Military ID</th>
+              <th class="px-4 py-3 text-left hidden md:table-cell">Rank</th>
+              <th class="px-4 py-3 text-left hidden md:table-cell">Command</th>
+              <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-left hidden lg:table-cell">Joined</th>
+              <th class="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            @for (m of members(); track m.id) {
+            @for (m of filteredMembers(); track m.id) {
               <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 font-mono text-xs text-gray-600">{{ m.militaryId }}</td>
-                <td class="px-6 py-4 font-medium text-gray-900">{{ m.firstName }} {{ m.lastName }}</td>
-                <td class="px-6 py-4 text-gray-600">{{ rankLabels[m.rank] }}</td>
-                <td class="px-6 py-4 text-gray-600">{{ m.command?.name ?? '—' }}</td>
-                <td class="px-6 py-4">
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ statusColors[m.status] }}">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {{ m.firstName.charAt(0) }}{{ m.lastName.charAt(0) }}
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-900">{{ m.firstName }} {{ m.lastName }}</p>
+                      <p class="text-xs text-gray-400 sm:hidden font-mono">{{ m.militaryId }}</p>
+                      <p class="text-xs text-gray-400 md:hidden">{{ rankLabels[m.rank] }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">{{ m.militaryId }}</td>
+                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ rankLabels[m.rank] }}</td>
+                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ m.command?.name ?? '—' }}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="statusColors[m.status]">
                     {{ statusLabels[m.status] }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-gray-500">{{ m.joinDate ?? '—' }}</td>
-                <td class="px-6 py-4 text-right space-x-3">
-                  <a [routerLink]="[m.id]" class="text-blue-600 hover:underline">View</a>
-                  <a [routerLink]="[m.id, 'edit']" class="text-gray-600 hover:underline">Edit</a>
-                  <button (click)="delete(m.id!)" class="text-red-500 hover:underline">Delete</button>
+                <td class="px-4 py-3 text-gray-500 hidden lg:table-cell">{{ m.joinDate ?? '—' }}</td>
+                <td class="px-4 py-3 text-right">
+                  <div class="flex items-center justify-end gap-3">
+                    <a [routerLink]="[m.id]" class="text-xs text-blue-600 hover:text-blue-800 font-medium">View</a>
+                    @if (canEdit) {
+                      <a [routerLink]="[m.id, 'edit']" class="text-xs text-gray-600 hover:text-gray-900 font-medium">Edit</a>
+                      <button (click)="delete(m.id!)" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                    }
+                  </div>
                 </td>
               </tr>
             }
           </tbody>
         </table>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+        {{ filteredMembers().length }} of {{ members().length }} member{{ members().length !== 1 ? 's' : '' }}
       </div>
     }
   </div>
