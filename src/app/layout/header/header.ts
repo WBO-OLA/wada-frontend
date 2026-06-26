@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { LayoutService } from '../../core/services/layout.service';
 
 @Component({
   selector: 'app-header',
@@ -11,6 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class Header {
   protected auth = inject(AuthService);
+  protected layout = inject(LayoutService);
 
   get username(): string { return this.auth.getUser()?.username ?? 'User'; }
   get role(): string { return this.auth.getRole(); }

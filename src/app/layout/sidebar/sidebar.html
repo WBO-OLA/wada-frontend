@@ -1,7 +1,18 @@
-<aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0">
-  <div class="p-5 border-b border-slate-700">
-    <h1 class="text-xl font-bold tracking-wide">MOMS</h1>
-    <p class="text-xs text-slate-400 mt-1">Military Organisation Mgmt</p>
+<aside
+  class="fixed md:relative inset-y-0 left-0 z-50 md:z-auto w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0"
+  [ngClass]="layout.sidebarOpen() ? 'translate-x-0' : '-translate-x-full'">
+
+  <div class="p-5 border-b border-slate-700 flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold tracking-wide">MOMS</h1>
+      <p class="text-xs text-slate-400 mt-1">Military Organisation Mgmt</p>
+    </div>
+    <!-- Close button — mobile only -->
+    <button class="md:hidden text-slate-400 hover:text-white p-1" (click)="layout.closeSidebar()">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <nav class="flex-1 p-4 space-y-1 overflow-y-auto">

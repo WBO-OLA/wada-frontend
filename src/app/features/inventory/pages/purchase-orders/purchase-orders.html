@@ -17,7 +17,7 @@
   @if (showForm()) {
     <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 class="font-semibold text-gray-900 text-sm mb-4">New Purchase Order</h2>
-      <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-2 gap-4">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Supplier *</label>
           <input formControlName="supplier" type="text"
@@ -74,6 +74,7 @@
     <div class="p-12 text-center text-gray-400 text-sm">No purchase orders yet.</div>
   } @else {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
@@ -118,6 +119,7 @@
           }
         </tbody>
       </table>
+      </div>
     </div>
   }
 </div>
