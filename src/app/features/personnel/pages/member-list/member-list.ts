@@ -24,10 +24,10 @@ export class MemberList implements OnInit {
   commands = signal<CommandWithDepth[]>([]);
   loading = signal(true);
 
-  searchTerm = '';
-  statusFilter = '';
-  rankFilter = '';
-  commandFilter = '';
+  searchTerm = signal('');
+  statusFilter = signal('');
+  rankFilter = signal('');
+  commandFilter = signal('');
 
   readonly statusOptions: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
   readonly rankOptions: MilitaryRank[] = [
@@ -50,7 +50,7 @@ export class MemberList implements OnInit {
 
   filteredMembers = computed(() => {
     let list = this.members();
-    const term = this.searchTerm.trim().toLowerCase();
+    const term = this.searchTerm().trim().toLowerCase();
     if (term) {
       list = list.filter(m =>
         m.firstName.toLowerCase().includes(term) ||
@@ -58,9 +58,9 @@ export class MemberList implements OnInit {
         m.militaryId.toLowerCase().includes(term)
       );
     }
-    if (this.statusFilter) list = list.filter(m => m.status === this.statusFilter);
-    if (this.rankFilter)   list = list.filter(m => m.rank === this.rankFilter);
-    if (this.commandFilter) list = list.filter(m => String(m.command?.id) === this.commandFilter);
+    if (this.statusFilter())  list = list.filter(m => m.status === this.statusFilter());
+    if (this.rankFilter())    list = list.filter(m => m.rank === this.rankFilter());
+    if (this.commandFilter()) list = list.filter(m => String(m.command?.id) === this.commandFilter());
     return list;
   });
 
@@ -78,10 +78,10 @@ export class MemberList implements OnInit {
   }
 
   clearFilters() {
-    this.searchTerm = '';
-    this.statusFilter = '';
-    this.rankFilter = '';
-    this.commandFilter = '';
+    this.searchTerm.set('');
+    this.statusFilter.set('');
+    this.rankFilter.set('');
+    this.commandFilter.set('');
   }
 
   delete(id: number) {
