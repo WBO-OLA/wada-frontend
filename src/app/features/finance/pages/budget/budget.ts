@@ -4,10 +4,12 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CommandService } from '../../../personnel/services/command.service';
 import {
   Budget, BudgetStatus, Income, Expense,
   BUDGET_STATUS_LABELS, BUDGET_STATUS_COLORS
 } from '../../../../core/models/finance.model';
+import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-budget',
@@ -19,11 +21,14 @@ import {
 export class BudgetPage implements OnInit {
   private fb = inject(FormBuilder);
   private financeService = inject(FinanceService);
+  private commandService = inject(CommandService);
   private auth = inject(AuthService);
 
   budgets = signal<Budget[]>([]);
   incomes = signal<Income[]>([]);
   approvedExpenses = signal<Expense[]>([]);
+  commands = signal<Command[]>([]);
+  commandFilter = signal<number | null>(null);
   loading = signal(false);
   showForm = signal(false);
   saving = signal(false);
@@ -49,10 +54,18 @@ export class BudgetPage implements OnInit {
     totalAmount: [null as number | null, [Validators.required, Validators.min(1)]],
     department: [''],
     description: [''],
+    commandId: [null as number | null],
     notes: [''],
   });
 
+  commandName(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.commands().find(x => x.id === id);
+    return c ? (c.name + (c.description ? ` (${c.description})` : '')) : '';
+  }
+
   ngOnInit() {
+    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
     this.load();
     this.loadCapitalData();
   }
@@ -64,10 +77,15 @@ export class BudgetPage implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.financeService.getBudgets().subscribe({
+    this.financeService.getBudgets(undefined, this.commandFilter() ?? undefined).subscribe({
       next: data => { this.budgets.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
+  }
+
+  setCommandFilter(id: number | null) {
+    this.commandFilter.set(id);
+    this.load();
   }
 
   submitBudget() {

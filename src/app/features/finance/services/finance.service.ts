@@ -17,8 +17,9 @@ export class FinanceService {
   private readonly expenses = 'finance/expenses';
 
   // --- Income ---
-  getIncomes(): Observable<Income[]> {
-    return this.api.get<ApiResponse<Income[]>>(this.incomes).pipe(map(r => r.data));
+  getIncomes(commandId?: number): Observable<Income[]> {
+    const path = commandId ? `${this.incomes}?commandId=${commandId}` : this.incomes;
+    return this.api.get<ApiResponse<Income[]>>(path).pipe(map(r => r.data));
   }
 
   createIncome(request: Partial<Income>): Observable<Income> {
@@ -34,9 +35,12 @@ export class FinanceService {
   }
 
   // --- Budget ---
-  getBudgets(fiscalYear?: number): Observable<Budget[]> {
-    const path = fiscalYear ? `${this.budgets}?fiscalYear=${fiscalYear}` : this.budgets;
-    return this.api.get<Budget[]>(path);
+  getBudgets(fiscalYear?: number, commandId?: number): Observable<Budget[]> {
+    const params = new URLSearchParams();
+    if (fiscalYear) params.set('fiscalYear', String(fiscalYear));
+    if (commandId) params.set('commandId', String(commandId));
+    const qs = params.toString();
+    return this.api.get<Budget[]>(qs ? `${this.budgets}?${qs}` : this.budgets);
   }
 
   getBudget(id: number): Observable<Budget> {
@@ -64,9 +68,12 @@ export class FinanceService {
   }
 
   // --- Expenses ---
-  getExpenses(status?: string): Observable<Expense[]> {
-    const path = status ? `${this.expenses}?status=${status}` : this.expenses;
-    return this.api.get<Expense[]>(path);
+  getExpenses(status?: string, commandId?: number): Observable<Expense[]> {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (commandId) params.set('commandId', String(commandId));
+    const qs = params.toString();
+    return this.api.get<Expense[]>(qs ? `${this.expenses}?${qs}` : this.expenses);
   }
 
   createExpense(request: Partial<Expense> & { budgetId?: number }): Observable<Expense> {

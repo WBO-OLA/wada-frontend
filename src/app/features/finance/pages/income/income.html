@@ -102,6 +102,16 @@
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
         <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Command (Zone / Brigade)</label>
+          <select formControlName="commandId"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500">
+            <option [ngValue]="null">— Chief Command (Global) —</option>
+            @for (c of commands(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}{{ c.description ? ' (' + c.description + ')' : '' }}</option>
+            }
+          </select>
+        </div>
+        <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Date Received</label>
           <input formControlName="receivedDate" type="date"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
@@ -122,6 +132,24 @@
           </button>
         </div>
       </form>
+    </div>
+  }
+
+  <!-- Command filter -->
+  @if (commands().length > 0) {
+    <div class="flex flex-wrap gap-2 mb-3">
+      <button (click)="setCommandFilter(null)"
+              [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+              class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+        All Commands
+      </button>
+      @for (c of commands(); track c.id) {
+        <button (click)="setCommandFilter(c.id!)"
+                [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+                class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+          {{ c.name }}{{ c.description ? ' · ' + c.description : '' }}
+        </button>
+      }
     </div>
   }
 
@@ -167,6 +195,7 @@
           <tr>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Title</th>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Amount</th>
+            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Command</th>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Group</th>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Country</th>
             <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Date Received</th>
@@ -180,6 +209,13 @@
               <td class="px-5 py-3 font-medium text-gray-900">{{ income.title }}</td>
               <td class="px-5 py-3 text-green-700 font-medium whitespace-nowrap">
                 {{ income.amount | currency:(income.currency ?? 'USD') }}
+              </td>
+              <td class="px-5 py-3 text-xs">
+                @if (income.commandId) {
+                  <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">{{ commandName(income.commandId) }}</span>
+                } @else {
+                  <span class="text-gray-300">—</span>
+                }
               </td>
               <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ income.communityGroup || '—' }}</td>
               <td class="px-5 py-3 text-gray-500 hidden sm:table-cell">{{ income.country || '—' }}</td>

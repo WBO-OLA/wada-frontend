@@ -65,6 +65,7 @@ export interface Budget {
   approvedBy?: string;
   approvedAt?: string;
   notes?: string;
+  commandId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -83,6 +84,7 @@ export interface Expense {
   rejectionReason?: string;
   reference?: string;
   notes?: string;
+  commandId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -106,6 +108,7 @@ export interface Income {
   reference?: string;
   recordedBy?: string;
   notes?: string;
+  commandId?: number;
   createdAt?: string;
 }
 

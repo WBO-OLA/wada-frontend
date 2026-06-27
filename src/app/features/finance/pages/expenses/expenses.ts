@@ -4,10 +4,12 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angu
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CommandService } from '../../../personnel/services/command.service';
 import {
   Expense, Budget, ExpenseStatus,
   EXPENSE_STATUS_LABELS, EXPENSE_STATUS_COLORS
 } from '../../../../core/models/finance.model';
+import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-expenses',
@@ -19,10 +21,13 @@ import {
 export class Expenses implements OnInit {
   private fb = inject(FormBuilder);
   private financeService = inject(FinanceService);
+  private commandService = inject(CommandService);
   private auth = inject(AuthService);
 
   expenses = signal<Expense[]>([]);
   budgets = signal<Budget[]>([]);
+  commands = signal<Command[]>([]);
+  commandFilter = signal<number | null>(null);
   loading = signal(false);
   showForm = signal(false);
   saving = signal(false);
@@ -56,15 +61,23 @@ export class Expenses implements OnInit {
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     category: [''],
     budgetId: [null as number | null],
+    commandId: [null as number | null],
     reference: [''],
     notes: [''],
   });
+
+  commandName(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.commands().find(x => x.id === id);
+    return c ? (c.name + (c.description ? ` (${c.description})` : '')) : '';
+  }
 
   rejectionForm = this.fb.group({
     rejectionReason: [''],
   });
 
   ngOnInit() {
+    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
     this.load();
     this.loadBudgets();
   }
@@ -79,7 +92,8 @@ export class Expenses implements OnInit {
   load() {
     this.loading.set(true);
     const status = this.filterStatus() || undefined;
-    this.financeService.getExpenses(status).subscribe({
+    const commandId = this.commandFilter() ?? undefined;
+    this.financeService.getExpenses(status, commandId).subscribe({
       next: data => { this.expenses.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
@@ -88,6 +102,11 @@ export class Expenses implements OnInit {
   applyFilter(status: string) {
     this.filterStatus.set(status);
     this.searchTerm.set('');
+    this.load();
+  }
+
+  setCommandFilter(id: number | null) {
+    this.commandFilter.set(id);
     this.load();
   }
 

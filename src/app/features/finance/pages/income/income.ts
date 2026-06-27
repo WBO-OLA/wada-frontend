@@ -4,7 +4,9 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angu
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../services/finance.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CommandService } from '../../../personnel/services/command.service';
 import { Income, IncomeAggregate } from '../../../../core/models/finance.model';
+import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-income',
@@ -16,6 +18,7 @@ import { Income, IncomeAggregate } from '../../../../core/models/finance.model';
 export class IncomePage implements OnInit {
   private fb = inject(FormBuilder);
   private financeService = inject(FinanceService);
+  private commandService = inject(CommandService);
   private auth = inject(AuthService);
 
   get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
@@ -30,6 +33,7 @@ export class IncomePage implements OnInit {
     country: ['', Validators.required],
     source: [''],
     category: [''],
+    commandId: [null as number | null],
     receivedDate: [''],
     reference: [''],
     notes: [''],
@@ -37,12 +41,20 @@ export class IncomePage implements OnInit {
 
   incomes = signal<Income[]>([]);
   aggregate = signal<IncomeAggregate | null>(null);
+  commands = signal<Command[]>([]);
+  commandFilter = signal<number | null>(null);
   loading = signal(false);
   showForm = signal(false);
   showAggregate = signal(false);
   saving = signal(false);
   error = signal('');
   success = signal('');
+
+  commandName(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.commands().find(x => x.id === id);
+    return c ? (c.name + (c.description ? ` (${c.description})` : '')) : '';
+  }
 
   searchTerm = signal('');
   communityGroupFilter = signal('');
@@ -69,16 +81,22 @@ export class IncomePage implements OnInit {
   });
 
   ngOnInit() {
+    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
     this.load();
     this.loadAggregate();
   }
 
   load() {
     this.loading.set(true);
-    this.financeService.getIncomes().subscribe({
+    this.financeService.getIncomes(this.commandFilter() ?? undefined).subscribe({
       next: (data) => { this.incomes.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
+  }
+
+  setCommandFilter(id: number | null) {
+    this.commandFilter.set(id);
+    this.load();
   }
 
   loadAggregate() {
