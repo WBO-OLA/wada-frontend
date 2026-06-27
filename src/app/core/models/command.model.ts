@@ -1,3 +1,5 @@
+import { MilitaryRank } from './member.model';
+
 export type CommandType = 'CHIEF' | 'ZONE' | 'BRIGADE' | 'REGION' | 'UNIT';
 
 export interface CommanderSummary {
@@ -5,7 +7,7 @@ export interface CommanderSummary {
   firstName: string;
   lastName: string;
   militaryId: string;
-  rank: string;
+  rank: MilitaryRank;
   responsibility?: string | null;
 }
 
