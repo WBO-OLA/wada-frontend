@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -63,9 +63,9 @@ export class MemberDetail implements OnInit {
   allCommands = signal<Command[]>([]);
   transferHistory = signal<TransferHistoryEntry[]>([]);
   showTransferForm = signal(false);
-  showTransferHistory = signal(false);
   transferSubmitting = signal(false);
   transferError = signal('');
+
   documents = signal<MemberDocument[]>([]);
   docsLoading = signal(false);
   showUpload = signal(false);
@@ -75,25 +75,20 @@ export class MemberDetail implements OnInit {
   docSuccess = signal('');
 
   activities = signal<MemberActivity[]>([]);
-  showActivities = signal(false);
   showActivityForm = signal(false);
   activitySubmitting = signal(false);
   activityError = signal('');
 
   statusHistory = signal<StatusHistoryEntry[]>([]);
   rankHistory = signal<RankHistoryEntry[]>([]);
-  showStatusHistory = signal(false);
-  showRankHistory = signal(false);
 
   medicalRecords = signal<MedicalRecord[]>([]);
-  showMedical = signal(false);
   showMedicalForm = signal(false);
   medicalSubmitting = signal(false);
   medicalError = signal('');
 
   responsibilityHistory = signal<ResponsibilityHistoryEntry[]>([]);
   showResponsibilityForm = signal(false);
-  showResponsibilityHistory = signal(false);
   responsibilitySubmitting = signal(false);
   responsibilityError = signal('');
 
@@ -101,7 +96,26 @@ export class MemberDetail implements OnInit {
   photoError = signal('');
 
   assignedAssets = signal<AssetAssignment[]>([]);
-  showAssets = signal(false);
+
+  activeTab = signal<string>('profile');
+
+  responsibilityTimeline = computed(() => {
+    const asc = [...this.responsibilityHistory()].reverse();
+    return asc.map((entry, i) => {
+      const fromYear = new Date(entry.changedAt).getFullYear().toString();
+      const next = asc[i + 1];
+      const toYear = next ? new Date(next.changedAt).getFullYear().toString() : 'Present';
+      return {
+        responsibility: entry.newResponsibility,
+        fromYear,
+        toYear,
+        isCurrent: !next,
+        changedBy: entry.changedBy,
+        reason: entry.reason,
+        changedAt: entry.changedAt,
+      };
+    }).reverse();
+  });
 
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
@@ -114,6 +128,13 @@ export class MemberDetail implements OnInit {
     RETIRED: 'bg-gray-100 text-gray-600',
     PASSED_AWAY: 'bg-red-100 text-red-700',
   };
+
+  tabClass(tab: string): string {
+    const base = 'px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap focus:outline-none ';
+    return tab === this.activeTab()
+      ? base + 'border-slate-900 text-slate-900'
+      : base + 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+  }
 
   get canEdit(): boolean { return this.auth.canEdit(); }
 

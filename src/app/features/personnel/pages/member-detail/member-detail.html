@@ -1,4 +1,4 @@
-<div class="max-w-2xl">
+<div class="max-w-4xl">
   <div class="flex items-center gap-3 mb-6">
     <a routerLink="/personnel" class="text-gray-400 hover:text-gray-600 text-sm">← Personnel</a>
     <span class="text-gray-300">/</span>
@@ -10,10 +10,11 @@
   } @else if (!member()) {
     <div class="p-12 text-center text-gray-400 text-sm">Member not found.</div>
   } @else {
-    <!-- Profile card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+
+    <!-- Profile header (always visible) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
       <div class="flex items-start gap-4">
-        <!-- Profile photo -->
+        <!-- Photo -->
         <div class="relative flex-shrink-0">
           <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-slate-500 text-2xl font-bold">
             @if (member()!.photoPath) {
@@ -38,6 +39,7 @@
             <div>
               <h2 class="text-xl font-bold text-gray-900">{{ member()!.firstName }} {{ member()!.lastName }}</h2>
               <p class="text-sm font-mono text-gray-500 mt-0.5">{{ member()!.militaryId }}</p>
+              <p class="text-sm text-gray-500 mt-0.5">{{ rankLabels[member()!.rank] }} · {{ member()!.command?.name ?? 'Unassigned' }}</p>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               <span class="px-3 py-1 rounded-full text-xs font-medium {{ statusColors[member()!.status] }}">
@@ -54,109 +56,414 @@
           @if (photoError()) {
             <p class="text-xs text-red-500 mt-1">{{ photoError() }}</p>
           }
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-sm">
-        <div>
-          <p class="text-xs text-gray-500">Rank</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ rankLabels[member()!.rank] }}</p>
-        </div>
-        <div>
-          <p class="text-xs text-gray-500">Command</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.command?.name ?? '—' }}</p>
-          @if (member()!.command?.description) {
-            <p class="text-xs text-gray-400 mt-0.5">{{ member()!.command!.description }}</p>
+          @if (member()!.responsibility) {
+            <p class="text-xs text-emerald-700 bg-emerald-50 inline-block px-2 py-0.5 rounded mt-2 font-medium">{{ member()!.responsibility }}</p>
           }
         </div>
-        <div>
-          <p class="text-xs text-gray-500">Date Joined</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.joinDate ?? '—' }}</p>
-        </div>
-        <div>
-          <p class="text-xs text-gray-500">Date of Birth</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.dateOfBirth ?? '—' }}</p>
-        </div>
-        <div>
-          <p class="text-xs text-gray-500">Phone</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.phone ?? '—' }}</p>
-        </div>
-        <div>
-          <p class="text-xs text-gray-500">Email</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.email ?? '—' }}</p>
-        </div>
-        <div class="col-span-2">
-          <p class="text-xs text-gray-500">Responsibility</p>
-          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.responsibility || '—' }}</p>
-        </div>
-        @if (member()!.notes) {
-          <div class="col-span-2">
-            <p class="text-xs text-gray-500">Notes</p>
-            <p class="font-medium text-gray-900 mt-0.5">{{ member()!.notes }}</p>
-          </div>
-        }
       </div>
     </div>
 
-    <!-- Activity Timeline -->
-    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div class="flex justify-between items-center mb-1">
-        <button (click)="showActivities.set(!showActivities())"
-                class="flex-1 flex justify-between items-center text-sm font-semibold text-gray-900">
-          <span>Activity Timeline <span class="text-gray-400 font-normal">({{ activities().length }})</span></span>
-          <span class="text-gray-400 text-xs">{{ showActivities() ? '▲ Collapse' : '▼ Expand' }}</span>
-        </button>
-        @if (showActivities() && canEdit) {
-          <button (click)="showActivityForm.set(!showActivityForm())"
-                  class="ml-4 text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
-            {{ showActivityForm() ? 'Cancel' : '+ Add' }}
+    <!-- Tab container -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+      <!-- Tab nav -->
+      <div class="border-b border-gray-200 px-2 overflow-x-auto">
+        <nav class="flex -mb-px">
+          <button (click)="activeTab.set('profile')" [class]="tabClass('profile')">Profile</button>
+          <button (click)="activeTab.set('responsibility')" [class]="tabClass('responsibility')">
+            Responsibility
+            @if (responsibilityHistory().length) {
+              <span class="ml-1 text-xs text-gray-400">({{ responsibilityHistory().length }})</span>
+            }
           </button>
-        }
+          <button (click)="activeTab.set('career')" [class]="tabClass('career')">Career</button>
+          <button (click)="activeTab.set('activities')" [class]="tabClass('activities')">
+            Activities
+            @if (activities().length) {
+              <span class="ml-1 text-xs text-gray-400">({{ activities().length }})</span>
+            }
+          </button>
+          <button (click)="activeTab.set('documents')" [class]="tabClass('documents')">
+            Documents
+            @if (documents().length) {
+              <span class="ml-1 text-xs text-gray-400">({{ documents().length }})</span>
+            }
+          </button>
+          <button (click)="activeTab.set('assets')" [class]="tabClass('assets')">
+            Assets
+            @if (assignedAssets().length) {
+              <span class="ml-1 text-xs text-gray-400">({{ assignedAssets().length }})</span>
+            }
+          </button>
+          @if (canViewMedical) {
+            <button (click)="activeTab.set('medical')" [class]="tabClass('medical')">
+              Medical
+              @if (medicalRecords().length) {
+                <span class="ml-1 text-xs text-red-400">({{ medicalRecords().length }})</span>
+              }
+            </button>
+          }
+        </nav>
       </div>
 
-      @if (showActivities()) {
-        @if (activityError()) {
-          <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ activityError() }}</div>
+      <!-- Tab content -->
+      <div class="p-6">
+
+        <!-- ── PROFILE TAB ── -->
+        @if (activeTab() === 'profile') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div>
+              <p class="text-xs text-gray-500">Rank</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ rankLabels[member()!.rank] }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Command</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.command?.name ?? '—' }}</p>
+              @if (member()!.command?.description) {
+                <p class="text-xs text-gray-400 mt-0.5">{{ member()!.command!.description }}</p>
+              }
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Date Joined</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.joinDate ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Date of Birth</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.dateOfBirth ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Gender</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.gender ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Nationality</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.nationality ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Phone</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.phone ?? '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Email</p>
+              <p class="font-medium text-gray-900 mt-0.5">{{ member()!.email ?? '—' }}</p>
+            </div>
+            @if (member()!.unit) {
+              <div>
+                <p class="text-xs text-gray-500">Unit</p>
+                <p class="font-medium text-gray-900 mt-0.5">{{ member()!.unit }}</p>
+              </div>
+            }
+            @if (member()!.role) {
+              <div>
+                <p class="text-xs text-gray-500">Role</p>
+                <p class="font-medium text-gray-900 mt-0.5">{{ member()!.role }}</p>
+              </div>
+            }
+            @if (member()!.serviceNumber) {
+              <div>
+                <p class="text-xs text-gray-500">Service Number</p>
+                <p class="font-medium text-gray-900 mt-0.5 font-mono">{{ member()!.serviceNumber }}</p>
+              </div>
+            }
+            @if (member()!.codeName) {
+              <div>
+                <p class="text-xs text-gray-500">Code Name</p>
+                <p class="font-medium text-gray-900 mt-0.5">{{ member()!.codeName }}</p>
+              </div>
+            }
+            @if (member()!.address) {
+              <div class="col-span-2">
+                <p class="text-xs text-gray-500">Address</p>
+                <p class="font-medium text-gray-900 mt-0.5">{{ member()!.address }}</p>
+              </div>
+            }
+            @if (member()!.notes) {
+              <div class="col-span-2">
+                <p class="text-xs text-gray-500">Notes</p>
+                <p class="font-medium text-gray-900 mt-0.5">{{ member()!.notes }}</p>
+              </div>
+            }
+          </div>
         }
 
-        @if (showActivityForm()) {
-          <form [formGroup]="activityForm" (ngSubmit)="addActivity()" class="mt-4 grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Title *</label>
-              <input formControlName="title" type="text" placeholder="e.g. Field mission completed"
-                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Type *</label>
-              <select formControlName="type"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
-                @for (t of activityTypes; track t) {
-                  <option [value]="t">{{ activityTypeLabels[t] }}</option>
-                }
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Date *</label>
-              <input formControlName="activityDate" type="date"
-                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
-              <input formControlName="description" type="text"
-                     class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
-            </div>
-            <div class="col-span-2 flex justify-end">
-              <button type="submit" [disabled]="activityForm.invalid || activitySubmitting()"
-                      class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition">
-                {{ activitySubmitting() ? 'Saving...' : 'Add Activity' }}
+        <!-- ── RESPONSIBILITY TAB ── -->
+        @if (activeTab() === 'responsibility') {
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-semibold text-gray-900">Responsibility History</h3>
+            @if (canEdit) {
+              <button (click)="showResponsibilityForm.set(!showResponsibilityForm())"
+                      class="text-xs px-3 py-1.5 bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 transition">
+                {{ showResponsibilityForm() ? 'Cancel' : '+ Assign New' }}
               </button>
+            }
+          </div>
+
+          @if (responsibilityError()) {
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ responsibilityError() }}</div>
+          }
+
+          @if (showResponsibilityForm()) {
+            <form [formGroup]="responsibilityForm" (ngSubmit)="submitResponsibility()"
+                  class="mb-6 grid grid-cols-2 gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div class="col-span-2">
+                <label class="block text-xs font-medium text-gray-700 mb-1">New Responsibility *</label>
+                <input formControlName="responsibility" type="text" placeholder="e.g. Zone Intelligence Officer"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
+                <input formControlName="changedBy" type="text" placeholder="e.g. Commander name"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
+                <input formControlName="reason" type="text" placeholder="e.g. Restructuring"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div class="col-span-2 flex justify-end">
+                <button type="submit" [disabled]="responsibilityForm.invalid || responsibilitySubmitting()"
+                        class="px-4 py-1.5 text-xs bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
+                  {{ responsibilitySubmitting() ? 'Saving...' : 'Confirm Assignment' }}
+                </button>
+              </div>
+            </form>
+          }
+
+          <!-- Timeline -->
+          @if (responsibilityTimeline().length === 0) {
+            <div class="text-center py-12">
+              <p class="text-gray-400 text-sm">No responsibility history recorded.</p>
+              @if (member()!.responsibility) {
+                <p class="text-xs text-gray-400 mt-1">Current: {{ member()!.responsibility }}</p>
+              }
             </div>
-          </form>
+          } @else {
+            <div class="relative">
+              <!-- Vertical line -->
+              <div class="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-200"></div>
+
+              <div class="space-y-6">
+                @for (period of responsibilityTimeline(); track period.changedAt) {
+                  <div class="relative flex gap-4">
+                    <!-- Dot -->
+                    <div class="flex-shrink-0 w-9 flex justify-center pt-0.5">
+                      @if (period.isCurrent) {
+                        <div class="w-4 h-4 rounded-full bg-emerald-600 border-2 border-white shadow-sm ring-2 ring-emerald-200"></div>
+                      } @else {
+                        <div class="w-3 h-3 rounded-full bg-gray-300 border-2 border-white shadow-sm mt-0.5"></div>
+                      }
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 pb-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                          {{ period.fromYear }} – {{ period.toYear }}
+                        </span>
+                        @if (period.isCurrent) {
+                          <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">Current</span>
+                        }
+                      </div>
+                      <p class="font-semibold text-gray-900 mt-1 text-sm">{{ period.responsibility }}</p>
+                      @if (period.changedBy || period.reason) {
+                        <p class="text-xs text-gray-400 mt-0.5">
+                          @if (period.changedBy) { Auth: {{ period.changedBy }} }
+                          @if (period.changedBy && period.reason) { &nbsp;·&nbsp; }
+                          @if (period.reason) { {{ period.reason }} }
+                        </p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         }
 
-        <div class="mt-4">
+        <!-- ── CAREER TAB ── -->
+        @if (activeTab() === 'career') {
+
+          <!-- Command Transfers -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-gray-900 text-sm">Command Transfers <span class="text-gray-400 font-normal">({{ transferHistory().length }})</span></h3>
+              @if (canEdit) {
+                <button (click)="showTransferForm.set(!showTransferForm())"
+                        class="text-xs px-3 py-1.5 bg-blue-800 text-white rounded-lg hover:bg-blue-700 transition">
+                  {{ showTransferForm() ? 'Cancel' : '+ Transfer' }}
+                </button>
+              }
+            </div>
+
+            @if (transferError()) {
+              <div class="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ transferError() }}</div>
+            }
+
+            @if (showTransferForm()) {
+              <form [formGroup]="transferForm" (ngSubmit)="submitTransfer()"
+                    class="mb-4 grid grid-cols-2 gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Transfer To Command</label>
+                  <select formControlName="toCommandId"
+                          class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option [value]="null">— Unassigned —</option>
+                    @for (c of allCommands(); track c.id) {
+                      <option [value]="c.id">{{ c.name }}{{ c.description ? ' (' + c.description + ')' : '' }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
+                  <input formControlName="transferredBy" type="text" placeholder="e.g. Ajajaa Walii Galaa"
+                         class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
+                  <input formControlName="reason" type="text" placeholder="e.g. Zone restructuring"
+                         class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div class="col-span-2 flex justify-end">
+                  <button type="submit" [disabled]="transferForm.invalid || transferSubmitting()"
+                          class="px-4 py-1.5 text-xs bg-blue-800 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
+                    {{ transferSubmitting() ? 'Transferring...' : 'Confirm Transfer' }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            @if (transferHistory().length === 0) {
+              <p class="text-xs text-gray-400 text-center py-4">No transfers recorded.</p>
+            } @else {
+              <div class="space-y-2">
+                @for (entry of transferHistory(); track entry.id) {
+                  <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg text-xs border border-blue-100">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium">{{ entry.fromCommand?.name ?? 'Unassigned' }}</span>
+                        <span class="text-blue-400">→</span>
+                        <span class="px-2 py-0.5 rounded bg-blue-800 text-white font-medium">{{ entry.toCommand?.name ?? 'Unassigned' }}</span>
+                      </div>
+                      @if (entry.reason) { <p class="text-gray-500 mt-1">Reason: {{ entry.reason }}</p> }
+                    </div>
+                    <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
+                      <div>{{ formatDate(entry.transferredAt) }}</div>
+                      @if (entry.transferredBy) { <div>Auth: {{ entry.transferredBy }}</div> }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <hr class="border-gray-100 mb-8" />
+
+          <!-- Promotions -->
+          <div class="mb-8">
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">Promotion History <span class="text-gray-400 font-normal">({{ rankHistory().length }})</span></h3>
+            @if (rankHistory().length === 0) {
+              <p class="text-xs text-gray-400 text-center py-4">No promotions recorded.</p>
+            } @else {
+              <div class="space-y-2">
+                @for (entry of rankHistory(); track entry.id) {
+                  <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg text-xs">
+                    <div class="flex-1">
+                      <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 font-medium">{{ rankLabels[entry.previousRank] ?? entry.previousRank }}</span>
+                      <span class="mx-2 text-gray-400">→</span>
+                      <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">{{ rankLabels[entry.newRank] ?? entry.newRank }}</span>
+                      @if (entry.notes) { <span class="ml-2 text-gray-500">· {{ entry.notes }}</span> }
+                    </div>
+                    <div class="text-right text-gray-400 whitespace-nowrap">
+                      <div>{{ formatDate(entry.promotedAt) }}</div>
+                      @if (entry.promotedBy) { <div>by {{ entry.promotedBy }}</div> }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <hr class="border-gray-100 mb-8" />
+
+          <!-- Status changes -->
+          <div>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">Status History <span class="text-gray-400 font-normal">({{ statusHistory().length }})</span></h3>
+            @if (statusHistory().length === 0) {
+              <p class="text-xs text-gray-400 text-center py-4">No status changes recorded.</p>
+            } @else {
+              <div class="space-y-2">
+                @for (entry of statusHistory(); track entry.id) {
+                  <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg text-xs">
+                    <div class="flex-1">
+                      <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 font-medium">{{ statusLabels[entry.previousStatus] ?? entry.previousStatus }}</span>
+                      <span class="mx-2 text-gray-400">→</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-white font-medium">{{ statusLabels[entry.newStatus] ?? entry.newStatus }}</span>
+                      @if (entry.notes) { <span class="ml-2 text-gray-500">· {{ entry.notes }}</span> }
+                    </div>
+                    <div class="text-right text-gray-400 whitespace-nowrap">
+                      <div>{{ formatDate(entry.changedAt) }}</div>
+                      @if (entry.changedBy) { <div>by {{ entry.changedBy }}</div> }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── ACTIVITIES TAB ── -->
+        @if (activeTab() === 'activities') {
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900 text-sm">Activity Timeline <span class="text-gray-400 font-normal">({{ activities().length }})</span></h3>
+            @if (canEdit) {
+              <button (click)="showActivityForm.set(!showActivityForm())"
+                      class="text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
+                {{ showActivityForm() ? 'Cancel' : '+ Add' }}
+              </button>
+            }
+          </div>
+
+          @if (activityError()) {
+            <div class="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ activityError() }}</div>
+          }
+
+          @if (showActivityForm()) {
+            <form [formGroup]="activityForm" (ngSubmit)="addActivity()"
+                  class="mb-4 grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+                <input formControlName="title" type="text" placeholder="e.g. Field mission completed"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Type *</label>
+                <select formControlName="type"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+                  @for (t of activityTypes; track t) {
+                    <option [value]="t">{{ activityTypeLabels[t] }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Date *</label>
+                <input formControlName="activityDate" type="date"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                <input formControlName="description" type="text"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+              </div>
+              <div class="col-span-2 flex justify-end">
+                <button type="submit" [disabled]="activityForm.invalid || activitySubmitting()"
+                        class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition">
+                  {{ activitySubmitting() ? 'Saving...' : 'Add Activity' }}
+                </button>
+              </div>
+            </form>
+          }
+
           @if (activities().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No activities recorded for this member.</p>
+            <p class="text-xs text-gray-400 text-center py-8">No activities recorded for this member.</p>
           } @else {
             <div class="space-y-2">
               @for (a of activities(); track a.id) {
@@ -167,415 +474,147 @@
                     </span>
                     <div class="min-w-0">
                       <p class="font-medium text-gray-900">{{ a.title }}</p>
-                      @if (a.description) {
-                        <p class="text-gray-500 mt-0.5">{{ a.description }}</p>
-                      }
+                      @if (a.description) { <p class="text-gray-500 mt-0.5">{{ a.description }}</p> }
                     </div>
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0 ml-3">
                     <span class="text-gray-400 whitespace-nowrap">{{ formatDate(a.activityDate) }}</span>
                     @if (canEdit) {
-                      <button (click)="deleteActivity(a.id!)"
-                              class="text-red-400 hover:text-red-600 transition">✕</button>
+                      <button (click)="deleteActivity(a.id!)" class="text-red-400 hover:text-red-600 transition">✕</button>
                     }
                   </div>
                 </div>
               }
             </div>
           }
-        </div>
-      }
-    </div>
-
-    <!-- Documents section -->
-    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm">Documents</h3>
-        @if (canEdit) {
-          <button (click)="showUpload.set(!showUpload())"
-                  class="text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
-            {{ showUpload() ? 'Cancel' : '+ Upload' }}
-          </button>
         }
-      </div>
 
-      @if (docError()) {
-        <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">{{ docError() }}</div>
-      }
-      @if (docSuccess()) {
-        <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-xs">{{ docSuccess() }}</div>
-      }
-
-      <!-- Upload form -->
-      @if (showUpload()) {
-        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="space-y-3">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">File *</label>
-              <input type="file" (change)="onFileSelected($event)"
-                     class="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-900 file:text-white hover:file:bg-slate-800" />
-              @if (selectedFile()) {
-                <p class="text-xs text-gray-500 mt-1">{{ selectedFile()!.name }} ({{ formatBytes(selectedFile()!.size) }})</p>
-              }
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                <input formControlName="description" type="text"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Uploading as</label>
-                <p class="px-3 py-1.5 text-xs bg-gray-100 rounded-lg text-gray-700 font-medium">{{ currentUser }}</p>
-              </div>
-            </div>
-            <div class="flex justify-end">
-              <button type="submit" [disabled]="!selectedFile() || uploading()"
-                      class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors">
-                {{ uploading() ? 'Uploading...' : 'Upload' }}
+        <!-- ── DOCUMENTS TAB ── -->
+        @if (activeTab() === 'documents') {
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900 text-sm">Documents <span class="text-gray-400 font-normal">({{ documents().length }})</span></h3>
+            @if (canEdit) {
+              <button (click)="showUpload.set(!showUpload())"
+                      class="text-xs px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
+                {{ showUpload() ? 'Cancel' : '+ Upload' }}
               </button>
-            </div>
-          </form>
-        </div>
-      }
+            }
+          </div>
 
-      <!-- Document list -->
-      @if (docsLoading()) {
-        <p class="text-xs text-gray-400 text-center py-4">Loading documents...</p>
-      } @else if (documents().length === 0) {
-        <p class="text-xs text-gray-400 text-center py-6">No documents uploaded for this member.</p>
-      } @else {
-        <div class="space-y-2">
-          @for (doc of documents(); track doc.id) {
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 text-xs font-bold">
-                  {{ (doc.fileType ?? 'FILE').split('/').pop()?.toUpperCase()?.slice(0, 3) }}
+          @if (docError()) {
+            <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">{{ docError() }}</div>
+          }
+          @if (docSuccess()) {
+            <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-xs">{{ docSuccess() }}</div>
+          }
+
+          @if (showUpload()) {
+            <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <form [formGroup]="uploadForm" (ngSubmit)="uploadDocument()" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">File *</label>
+                  <input type="file" (change)="onFileSelected($event)"
+                         class="w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-900 file:text-white hover:file:bg-slate-800" />
+                  @if (selectedFile()) {
+                    <p class="text-xs text-gray-500 mt-1">{{ selectedFile()!.name }} ({{ formatBytes(selectedFile()!.size) }})</p>
+                  }
                 </div>
-                <div class="min-w-0">
-                  <p class="text-sm font-medium text-gray-900 truncate">{{ doc.fileName }}</p>
-                  <p class="text-xs text-gray-400">
-                    {{ formatBytes(doc.fileSize) }}
-                    @if (doc.uploadedBy) { · {{ doc.uploadedBy }} }
-                    @if (doc.description) { · {{ doc.description }} }
-                  </p>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                    <input formControlName="description" type="text"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Uploading as</label>
+                    <p class="px-3 py-1.5 text-xs bg-gray-100 rounded-lg text-gray-700 font-medium">{{ currentUser }}</p>
+                  </div>
                 </div>
-              </div>
-              <div class="flex items-center gap-2 flex-shrink-0 ml-3">
-                <a [href]="downloadUrl(doc.id!)" target="_blank"
-                   class="text-xs px-2.5 py-1 text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors">
-                  Download
-                </a>
-                @if (canEdit) {
-                  <button (click)="deleteDocument(doc.id!)"
-                          class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors">
-                    Delete
+                <div class="flex justify-end">
+                  <button type="submit" [disabled]="!selectedFile() || uploading()"
+                          class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition">
+                    {{ uploading() ? 'Uploading...' : 'Upload' }}
                   </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Status History -->
-    <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <button (click)="showStatusHistory.set(!showStatusHistory())"
-              class="w-full flex justify-between items-center text-sm font-semibold text-gray-900">
-        <span>Status History <span class="text-gray-400 font-normal">({{ statusHistory().length }})</span></span>
-        <span class="text-gray-400 text-xs">{{ showStatusHistory() ? '▲ Collapse' : '▼ Expand' }}</span>
-      </button>
-      @if (showStatusHistory()) {
-        <div class="mt-4">
-          @if (statusHistory().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No status changes recorded.</p>
-          } @else {
-            <div class="space-y-2">
-              @for (entry of statusHistory(); track entry.id) {
-                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg text-xs">
-                  <div class="flex-1">
-                    <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 font-medium">
-                      {{ statusLabels[entry.previousStatus] ?? entry.previousStatus }}
-                    </span>
-                    <span class="mx-2 text-gray-400">→</span>
-                    <span class="px-2 py-0.5 rounded bg-slate-800 text-white font-medium">
-                      {{ statusLabels[entry.newStatus] ?? entry.newStatus }}
-                    </span>
-                    @if (entry.notes) {
-                      <span class="ml-2 text-gray-500">· {{ entry.notes }}</span>
-                    }
-                  </div>
-                  <div class="text-right text-gray-400 whitespace-nowrap">
-                    <div>{{ formatDate(entry.changedAt) }}</div>
-                    @if (entry.changedBy) { <div>by {{ entry.changedBy }}</div> }
-                  </div>
                 </div>
-              }
+              </form>
             </div>
           }
-        </div>
-      }
-    </div>
 
-    <!-- Rank History -->
-    <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <button (click)="showRankHistory.set(!showRankHistory())"
-              class="w-full flex justify-between items-center text-sm font-semibold text-gray-900">
-        <span>Promotion History <span class="text-gray-400 font-normal">({{ rankHistory().length }})</span></span>
-        <span class="text-gray-400 text-xs">{{ showRankHistory() ? '▲ Collapse' : '▼ Expand' }}</span>
-      </button>
-      @if (showRankHistory()) {
-        <div class="mt-4">
-          @if (rankHistory().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No promotions recorded.</p>
+          @if (docsLoading()) {
+            <p class="text-xs text-gray-400 text-center py-4">Loading documents...</p>
+          } @else if (documents().length === 0) {
+            <p class="text-xs text-gray-400 text-center py-8">No documents uploaded for this member.</p>
           } @else {
             <div class="space-y-2">
-              @for (entry of rankHistory(); track entry.id) {
-                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg text-xs">
-                  <div class="flex-1">
-                    <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-600 font-medium">
-                      {{ rankLabels[entry.previousRank] ?? entry.previousRank }}
-                    </span>
-                    <span class="mx-2 text-gray-400">→</span>
-                    <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">
-                      {{ rankLabels[entry.newRank] ?? entry.newRank }}
-                    </span>
-                    @if (entry.notes) {
-                      <span class="ml-2 text-gray-500">· {{ entry.notes }}</span>
-                    }
-                  </div>
-                  <div class="text-right text-gray-400 whitespace-nowrap">
-                    <div>{{ formatDate(entry.promotedAt) }}</div>
-                    @if (entry.promotedBy) { <div>by {{ entry.promotedBy }}</div> }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Career Transfer History -->
-    <div class="mt-4 bg-white rounded-xl shadow-sm border border-blue-100 p-6">
-      <div class="flex justify-between items-center mb-1">
-        <button (click)="showTransferHistory.set(!showTransferHistory())"
-                class="flex-1 flex justify-between items-center text-sm font-semibold text-blue-900">
-          <span>Career Transfer History <span class="text-blue-300 font-normal">({{ transferHistory().length }})</span></span>
-          <span class="text-blue-300 text-xs">{{ showTransferHistory() ? '▲ Collapse' : '▼ Expand' }}</span>
-        </button>
-        @if (canEdit) {
-          <button (click)="showTransferForm.set(!showTransferForm())"
-                  class="ml-4 text-xs px-3 py-1.5 bg-blue-800 text-white rounded-lg hover:bg-blue-700 transition">
-            {{ showTransferForm() ? 'Cancel' : '+ Transfer' }}
-          </button>
-        }
-      </div>
-
-      @if (transferError()) {
-        <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ transferError() }}</div>
-      }
-
-      @if (showTransferForm()) {
-        <form [formGroup]="transferForm" (ngSubmit)="submitTransfer()"
-              class="mt-4 grid grid-cols-2 gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div class="col-span-2">
-            <label class="block text-xs font-medium text-gray-700 mb-1">Transfer To Command</label>
-            <select formControlName="toCommandId"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option [value]="null">— Unassigned —</option>
-              @for (c of allCommands(); track c.id) {
-                <option [value]="c.id">{{ c.name }}{{ c.description ? ' (' + c.description + ')' : '' }}</option>
-              }
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
-            <input formControlName="transferredBy" type="text" placeholder="e.g. Ajajaa Walii Galaa"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
-            <input formControlName="reason" type="text" placeholder="e.g. Zone restructuring"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div class="col-span-2 flex justify-end">
-            <button type="submit" [disabled]="transferForm.invalid || transferSubmitting()"
-                    class="px-4 py-1.5 text-xs bg-blue-800 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
-              {{ transferSubmitting() ? 'Transferring...' : 'Confirm Transfer' }}
-            </button>
-          </div>
-        </form>
-      }
-
-      @if (showTransferHistory()) {
-        <div class="mt-4">
-          @if (transferHistory().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No transfers recorded for this member.</p>
-          } @else {
-            <div class="space-y-2">
-              @for (entry of transferHistory(); track entry.id) {
-                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg text-xs border border-blue-100">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium">
-                        {{ entry.fromCommand?.name ?? 'Unassigned' }}
-                      </span>
-                      <span class="text-blue-400">→</span>
-                      <span class="px-2 py-0.5 rounded bg-blue-800 text-white font-medium">
-                        {{ entry.toCommand?.name ?? 'Unassigned' }}
-                      </span>
+              @for (doc of documents(); track doc.id) {
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 text-xs font-bold">
+                      {{ (doc.fileType ?? 'FILE').split('/').pop()?.toUpperCase()?.slice(0, 3) }}
                     </div>
-                    @if (entry.reason) {
-                      <p class="text-gray-500 mt-1">Reason: {{ entry.reason }}</p>
-                    }
-                  </div>
-                  <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
-                    <div>{{ formatDate(entry.transferredAt) }}</div>
-                    @if (entry.transferredBy) { <div>Auth: {{ entry.transferredBy }}</div> }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Responsibility -->
-    <div class="mt-4 bg-white rounded-xl shadow-sm border border-emerald-100 p-6">
-      <div class="flex justify-between items-center mb-1">
-        <button (click)="showResponsibilityHistory.set(!showResponsibilityHistory())"
-                class="flex-1 flex justify-between items-center text-sm font-semibold text-emerald-900">
-          <span>Responsibility History <span class="text-emerald-300 font-normal">({{ responsibilityHistory().length }})</span></span>
-          <span class="text-emerald-300 text-xs">{{ showResponsibilityHistory() ? '▲ Collapse' : '▼ Expand' }}</span>
-        </button>
-        @if (canEdit) {
-          <button (click)="showResponsibilityForm.set(!showResponsibilityForm())"
-                  class="ml-4 text-xs px-3 py-1.5 bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 transition">
-            {{ showResponsibilityForm() ? 'Cancel' : '✎ Assign' }}
-          </button>
-        }
-      </div>
-
-      @if (responsibilityError()) {
-        <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ responsibilityError() }}</div>
-      }
-
-      @if (showResponsibilityForm()) {
-        <form [formGroup]="responsibilityForm" (ngSubmit)="submitResponsibility()"
-              class="mt-4 grid grid-cols-2 gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-          <div class="col-span-2">
-            <label class="block text-xs font-medium text-gray-700 mb-1">New Responsibility *</label>
-            <input formControlName="responsibility" type="text" placeholder="e.g. Zone Intelligence Officer"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
-            <input formControlName="changedBy" type="text" placeholder="e.g. Commander name"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
-            <input formControlName="reason" type="text" placeholder="e.g. Restructuring"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div class="col-span-2 flex justify-end">
-            <button type="submit" [disabled]="responsibilityForm.invalid || responsibilitySubmitting()"
-                    class="px-4 py-1.5 text-xs bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
-              {{ responsibilitySubmitting() ? 'Saving...' : 'Confirm Assignment' }}
-            </button>
-          </div>
-        </form>
-      }
-
-      @if (showResponsibilityHistory()) {
-        <div class="mt-4">
-          @if (responsibilityHistory().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No responsibility changes recorded.</p>
-          } @else {
-            <div class="space-y-2">
-              @for (entry of responsibilityHistory(); track entry.id) {
-                <div class="flex items-start gap-3 p-3 bg-emerald-50 rounded-lg text-xs border border-emerald-100">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium">
-                        {{ entry.previousResponsibility || 'None' }}
-                      </span>
-                      <span class="text-emerald-400">→</span>
-                      <span class="px-2 py-0.5 rounded bg-emerald-800 text-white font-medium">
-                        {{ entry.newResponsibility }}
-                      </span>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate">{{ doc.fileName }}</p>
+                      <p class="text-xs text-gray-400">
+                        {{ formatBytes(doc.fileSize) }}
+                        @if (doc.uploadedBy) { · {{ doc.uploadedBy }} }
+                        @if (doc.description) { · {{ doc.description }} }
+                      </p>
                     </div>
-                    @if (entry.reason) {
-                      <p class="text-gray-500 mt-1">Reason: {{ entry.reason }}</p>
-                    }
                   </div>
-                  <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
-                    <div>{{ formatDate(entry.changedAt) }}</div>
-                    @if (entry.changedBy) { <div>Auth: {{ entry.changedBy }}</div> }
+                  <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                    <a [href]="downloadUrl(doc.id!)" target="_blank"
+                       class="text-xs px-2.5 py-1 text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition">Download</a>
+                    @if (canEdit) {
+                      <button (click)="deleteDocument(doc.id!)"
+                              class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition">Delete</button>
+                    }
                   </div>
                 </div>
               }
             </div>
           }
-        </div>
-      }
-    </div>
+        }
 
-    <!-- Assigned Assets -->
-    <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <button (click)="showAssets.set(!showAssets()); loadAssignedAssets(member()!.id!)"
-              class="w-full flex justify-between items-center text-sm font-semibold text-gray-900">
-        <span>Assigned Assets <span class="text-gray-400 font-normal">({{ assignedAssets().length }})</span></span>
-        <span class="text-gray-400 text-xs">{{ showAssets() ? '▲ Collapse' : '▼ Expand' }}</span>
-      </button>
-      @if (showAssets()) {
-        <div class="mt-4">
+        <!-- ── ASSETS TAB ── -->
+        @if (activeTab() === 'assets') {
+          <h3 class="font-semibold text-gray-900 text-sm mb-4">Assigned Assets <span class="text-gray-400 font-normal">({{ assignedAssets().length }})</span></h3>
           @if (assignedAssets().length === 0) {
-            <p class="text-xs text-gray-400 text-center py-4">No assets currently assigned.</p>
+            <p class="text-xs text-gray-400 text-center py-8">No assets currently assigned to this member.</p>
           } @else {
             <div class="space-y-2">
               @for (a of assignedAssets(); track a.id) {
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-xs">
                   <div>
                     <p class="font-medium text-gray-900">{{ a.item?.name ?? '—' }}</p>
-                    <p class="text-gray-400">SKU: {{ a.item?.sku ?? '—' }} · Assigned by {{ a.assignedBy ?? '—' }} · {{ formatDate(a.createdAt) }}</p>
+                    <p class="text-gray-400 mt-0.5">SKU: {{ a.item?.sku ?? '—' }} · Assigned by {{ a.assignedBy ?? '—' }} · {{ formatDate(a.createdAt) }}</p>
                   </div>
                   <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">{{ a.status }}</span>
                 </div>
               }
             </div>
           }
-        </div>
-      }
-    </div>
+        }
 
-    <!-- Medical Records (ADMIN / MANAGER only) -->
-    @if (canViewMedical) {
-      <div class="mt-4 bg-white rounded-xl shadow-sm border border-red-100 p-6">
-        <div class="flex justify-between items-center mb-1">
-          <button (click)="showMedical.set(!showMedical())"
-                  class="flex-1 flex justify-between items-center text-sm font-semibold text-red-800">
-            <span>Medical Records <span class="text-red-300 font-normal">({{ medicalRecords().length }}) · Restricted</span></span>
-            <span class="text-red-300 text-xs">{{ showMedical() ? '▲ Collapse' : '▼ Expand' }}</span>
-          </button>
-          @if (showMedical()) {
+        <!-- ── MEDICAL TAB (restricted) ── -->
+        @if (activeTab() === 'medical' && canViewMedical) {
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-red-800 text-sm">
+              Medical Records
+              <span class="text-red-300 font-normal ml-1">({{ medicalRecords().length }}) · Restricted</span>
+            </h3>
             <button (click)="showMedicalForm.set(!showMedicalForm())"
-                    class="ml-4 text-xs px-3 py-1.5 bg-red-800 text-white rounded-lg hover:bg-red-700 transition">
-              {{ showMedicalForm() ? 'Cancel' : '+ Add' }}
+                    class="text-xs px-3 py-1.5 bg-red-800 text-white rounded-lg hover:bg-red-700 transition">
+              {{ showMedicalForm() ? 'Cancel' : '+ Add Record' }}
             </button>
-          }
-        </div>
+          </div>
 
-        @if (showMedical()) {
           @if (medicalError()) {
-            <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ medicalError() }}</div>
+            <div class="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ medicalError() }}</div>
           }
 
           @if (showMedicalForm()) {
-            <form [formGroup]="medicalForm" (ngSubmit)="submitMedicalRecord()" class="mt-4 grid grid-cols-2 gap-3 p-4 bg-red-50 rounded-lg">
+            <form [formGroup]="medicalForm" (ngSubmit)="submitMedicalRecord()"
+                  class="mb-4 grid grid-cols-2 gap-3 p-4 bg-red-50 rounded-lg border border-red-100">
               <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Record Date *</label>
                 <input formControlName="recordDate" type="date"
@@ -614,38 +653,38 @@
             </form>
           }
 
-          <div class="mt-4">
-            @if (medicalRecords().length === 0) {
-              <p class="text-xs text-gray-400 text-center py-4">No medical records on file.</p>
-            } @else {
-              <div class="space-y-2">
-                @for (rec of medicalRecords(); track rec.id) {
-                  <div class="p-3 bg-red-50 rounded-lg text-xs border border-red-100">
-                    <div class="flex justify-between items-start">
-                      <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                          <span class="font-semibold text-gray-900">{{ rec.diagnosis }}</span>
-                          @if (rec.confidential) {
-                            <span class="px-1.5 py-0.5 rounded bg-red-800 text-white text-xs font-bold">CONF</span>
-                          }
-                        </div>
-                        @if (rec.treatment) { <p class="text-gray-600">Treatment: {{ rec.treatment }}</p> }
-                        <p class="text-gray-400 mt-1">
-                          {{ formatDate(rec.recordDate) }}
-                          @if (rec.physician) { · Dr. {{ rec.physician }} }
-                          @if (rec.notes) { · {{ rec.notes }} }
-                        </p>
+          @if (medicalRecords().length === 0) {
+            <p class="text-xs text-gray-400 text-center py-8">No medical records on file.</p>
+          } @else {
+            <div class="space-y-2">
+              @for (rec of medicalRecords(); track rec.id) {
+                <div class="p-3 bg-red-50 rounded-lg text-xs border border-red-100">
+                  <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="font-semibold text-gray-900">{{ rec.diagnosis }}</span>
+                        @if (rec.confidential) {
+                          <span class="px-1.5 py-0.5 rounded bg-red-800 text-white text-xs font-bold">CONF</span>
+                        }
                       </div>
-                      <button (click)="deleteMedicalRecord(rec.id!)"
-                              class="text-red-400 hover:text-red-600 transition ml-3">✕</button>
+                      @if (rec.treatment) { <p class="text-gray-600">Treatment: {{ rec.treatment }}</p> }
+                      <p class="text-gray-400 mt-1">
+                        {{ formatDate(rec.recordDate) }}
+                        @if (rec.physician) { · Dr. {{ rec.physician }} }
+                        @if (rec.notes) { · {{ rec.notes }} }
+                      </p>
                     </div>
+                    <button (click)="deleteMedicalRecord(rec.id!)"
+                            class="text-red-400 hover:text-red-600 transition ml-3">✕</button>
                   </div>
-                }
-              </div>
-            }
-          </div>
+                </div>
+              }
+            </div>
+          }
         }
-      </div>
-    }
+
+      </div><!-- /tab content -->
+    </div><!-- /tab container -->
+
   }
 </div>
