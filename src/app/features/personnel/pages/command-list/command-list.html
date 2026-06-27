@@ -43,20 +43,24 @@
           }
         </select>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Commander *</label>
-        <select formControlName="commanderId"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-                [class.border-red-300]="form.get('commanderId')?.invalid && form.get('commanderId')?.touched">
-          <option [value]="null">— Select commander —</option>
-          @for (m of members(); track m.id) {
-            <option [value]="m.id">{{ memberDisplayName(m) }}</option>
+      @if (editingId() !== null) {
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Commander *</label>
+          <select formControlName="commanderId"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+                  [class.border-red-300]="form.get('commanderId')?.invalid && form.get('commanderId')?.touched">
+            <option [value]="null">— Select commander —</option>
+            @for (m of membersForCommand(editingId()); track m.id) {
+              <option [value]="m.id">{{ memberDisplayName(m) }}</option>
+            }
+          </select>
+          @if (membersForCommand(editingId()).length === 0) {
+            <p class="text-xs text-amber-600 mt-0.5">No members assigned to this command yet. Add members first.</p>
+          } @else if (form.get('commanderId')?.invalid && form.get('commanderId')?.touched) {
+            <p class="text-xs text-red-500 mt-0.5">Commander is required</p>
           }
-        </select>
-        @if (form.get('commanderId')?.invalid && form.get('commanderId')?.touched) {
-          <p class="text-xs text-red-500 mt-0.5">Commander is required</p>
-        }
-      </div>
+        </div>
+      }
       <div class="flex gap-2">
         <button type="submit" [disabled]="form.invalid"
                 class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50">
@@ -126,10 +130,13 @@
                       <select [(ngModel)]="assigningMemberId" [ngModelOptions]="{standalone: true}"
                               class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-slate-400 max-w-xs">
                         <option [ngValue]="null" disabled>— Select commander —</option>
-                        @for (m of members(); track m.id) {
+                        @for (m of membersForCommand(assigningCommandId()); track m.id) {
                           <option [ngValue]="m.id">{{ memberDisplayName(m) }}</option>
                         }
                       </select>
+                      @if (membersForCommand(assigningCommandId()).length === 0) {
+                        <span class="text-xs text-amber-600">No members in this command</span>
+                      }
                       <button (click)="confirmAssign()"
                               class="text-xs px-2 py-1 bg-slate-800 text-white rounded hover:bg-slate-700 transition whitespace-nowrap">
                         Confirm

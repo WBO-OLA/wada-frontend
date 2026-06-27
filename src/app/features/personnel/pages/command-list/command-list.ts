@@ -38,7 +38,7 @@ export class CommandList implements OnInit {
     description: ['' as string | null],
     type: ['UNIT' as CommandType, Validators.required],
     parentId: [null as number | null],
-    commanderId: [null as number | null, Validators.required],
+    commanderId: [null as number | null],
   });
 
   constructor() {}
@@ -88,6 +88,12 @@ export class CommandList implements OnInit {
     return `${this.rankLabels[m.rank] ?? m.rank} ${m.firstName} ${m.lastName} (${m.militaryId})`;
   }
 
+  /** Members who belong to the given command — eligible to be its commander. */
+  membersForCommand(commandId: number | null): Member[] {
+    if (commandId === null) return [];
+    return this.members().filter(m => m.command?.id === commandId);
+  }
+
   // Parents selectable when editing must exclude the command itself and its descendants.
   parentOptionsFor(editingId: number | null): CommandWithDepth[] {
     if (editingId === null) return this.tree();
@@ -102,7 +108,9 @@ export class CommandList implements OnInit {
 
   startCreate() {
     this.editingId.set(null);
-    this.form.reset({ name: '', description: '', type: 'UNIT', parentId: null });
+    this.form.reset({ name: '', description: '', type: 'UNIT', parentId: null, commanderId: null });
+    this.form.get('commanderId')!.clearValidators();
+    this.form.get('commanderId')!.updateValueAndValidity();
   }
 
   startEdit(command: Command) {
@@ -114,6 +122,8 @@ export class CommandList implements OnInit {
       parentId: command.parent?.id ?? null,
       commanderId: command.commander?.id ?? null,
     });
+    this.form.get('commanderId')!.setValidators(Validators.required);
+    this.form.get('commanderId')!.updateValueAndValidity();
   }
 
   cancelEdit() {
