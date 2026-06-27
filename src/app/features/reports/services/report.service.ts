@@ -9,8 +9,10 @@ import { DashboardReport } from '../../../core/models/report.model';
 export class ReportService {
   private api = inject(ApiService);
 
-  getDashboard(): Observable<DashboardReport> {
-    return this.api.get<ApiResponse<DashboardReport>>('reports/dashboard')
-      .pipe(map(r => r.data));
+  getDashboard(commandId?: number | null): Observable<DashboardReport> {
+    const url = commandId != null
+      ? `reports/dashboard?commandId=${commandId}`
+      : 'reports/dashboard';
+    return this.api.get<ApiResponse<DashboardReport>>(url).pipe(map(r => r.data));
   }
 }

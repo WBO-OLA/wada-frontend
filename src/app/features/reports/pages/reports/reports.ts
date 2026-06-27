@@ -1,7 +1,9 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReportService } from '../../services/report.service';
+import { CommandService } from '../../../personnel/services/command.service';
 import { DashboardReport } from '../../../../core/models/report.model';
+import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-reports',
@@ -15,15 +17,21 @@ export class ReportsPage implements OnInit {
   loading = signal(true);
   error = signal('');
   lastRefreshed = signal<Date | null>(null);
+  commands = signal<Command[]>([]);
+  commandFilter = signal<number | null>(null);
 
   private reportService = inject(ReportService);
+  private commandService = inject(CommandService);
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
+    this.load();
+  }
 
   load() {
     this.loading.set(true);
     this.error.set('');
-    this.reportService.getDashboard().subscribe({
+    this.reportService.getDashboard(this.commandFilter()).subscribe({
       next: (data) => {
         this.report.set(data);
         this.lastRefreshed.set(new Date());
@@ -34,6 +42,17 @@ export class ReportsPage implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  setCommandFilter(id: number | null) {
+    this.commandFilter.set(id);
+    this.load();
+  }
+
+  commandName(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.commands().find(x => x.id === id);
+    return c ? c.name : '';
   }
 
   topEntries(map: Record<string, number> | undefined, limit = 5): [string, number][] {
@@ -68,6 +87,7 @@ export class ReportsPage implements OnInit {
     rows.push(['WADA Management System — Dashboard Report']);
     rows.push(['Generated At', r.generatedAt ?? '']);
     rows.push(['Exported At', new Date().toISOString()]);
+    if (this.commandFilter() != null) rows.push(['Command Filter', this.commandName(this.commandFilter())]);
     rows.push([]);
 
     sep('=== PERSONNEL ===');

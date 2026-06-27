@@ -18,6 +18,24 @@
     </div>
   </div>
 
+  <!-- Command filter chip bar -->
+  @if (commands().length > 0) {
+    <div class="flex flex-wrap gap-2 mb-5">
+      <button (click)="setCommandFilter(null)"
+              [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+              class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+        All Commands
+      </button>
+      @for (c of commands(); track c.id) {
+        <button (click)="setCommandFilter(c.id!)"
+                [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+                class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+          {{ c.name }}{{ c.description ? ' · ' + c.description : '' }}
+        </button>
+      }
+    </div>
+  }
+
   @if (error()) {
     <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
       {{ error() }}
