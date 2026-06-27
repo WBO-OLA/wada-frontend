@@ -6,6 +6,7 @@ import { ApiResponse } from '../../../core/models/api-response.model';
 import {
   Member, MedicalRecord, MemberActivity,
   MemberRankUpdateRequest, MemberStatusUpdateRequest,
+  MemberTransferRequest, TransferHistoryEntry,
   RankHistoryEntry, StatusHistoryEntry
 } from '../../../core/models/member.model';
 
@@ -78,5 +79,13 @@ export class MemberService {
 
   deleteActivity(activityId: number): Observable<void> {
     return this.api.delete<ApiResponse<void>>(`personnel/activities/${activityId}`).pipe(map(() => undefined));
+  }
+
+  transfer(id: number, request: MemberTransferRequest): Observable<Member> {
+    return this.api.patch<ApiResponse<Member>>(`${this.path}/${id}/transfer`, request).pipe(map(r => r.data));
+  }
+
+  getTransferHistory(id: number): Observable<TransferHistoryEntry[]> {
+    return this.api.get<ApiResponse<TransferHistoryEntry[]>>(`${this.path}/${id}/transfer-history`).pipe(map(r => r.data));
   }
 }

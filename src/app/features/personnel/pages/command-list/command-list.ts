@@ -22,11 +22,12 @@ export class CommandList implements OnInit {
   error = signal('');
   editingId = signal<number | null>(null);
 
-  readonly types: CommandType[] = ['CHIEF', 'ZONE', 'REGION', 'UNIT'];
+  readonly types: CommandType[] = ['CHIEF', 'ZONE', 'BRIGADE', 'REGION', 'UNIT'];
   readonly typeLabels = COMMAND_TYPE_LABELS;
 
   form = this.fb.group({
     name: ['', Validators.required],
+    description: ['' as string | null],
     type: ['UNIT' as CommandType, Validators.required],
     parentId: [null as number | null],
   });
@@ -66,13 +67,14 @@ export class CommandList implements OnInit {
 
   startCreate() {
     this.editingId.set(null);
-    this.form.reset({ name: '', type: 'UNIT', parentId: null });
+    this.form.reset({ name: '', description: '', type: 'UNIT', parentId: null });
   }
 
   startEdit(command: Command) {
     this.editingId.set(command.id ?? null);
     this.form.reset({
       name: command.name,
+      description: command.description ?? '',
       type: command.type,
       parentId: command.parent?.id ?? null,
     });
@@ -86,7 +88,7 @@ export class CommandList implements OnInit {
     if (this.form.invalid) return;
     this.error.set('');
     const value = this.form.getRawValue();
-    const request = { name: value.name!, type: value.type!, parentId: value.parentId };
+    const request = { name: value.name!, description: value.description ?? undefined, type: value.type!, parentId: value.parentId };
     const id = this.editingId();
 
     const result$ = id !== null

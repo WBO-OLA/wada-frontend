@@ -89,6 +89,21 @@ export interface RankHistoryEntry {
   notes?: string;
 }
 
+export interface TransferHistoryEntry {
+  id: number;
+  fromCommand?: { id: number; name: string; description?: string } | null;
+  toCommand?: { id: number; name: string; description?: string } | null;
+  transferredAt: string;
+  transferredBy?: string;
+  reason?: string;
+}
+
+export interface MemberTransferRequest {
+  toCommandId?: number | null;
+  transferredBy: string;
+  reason?: string;
+}
+
 export const STATUS_LABELS: Record<MemberStatus, string> = {
   ACTIVE: 'Active',
   INJURED: 'Injured',

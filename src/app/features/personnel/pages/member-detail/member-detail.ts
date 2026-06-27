@@ -4,12 +4,14 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MemberService } from '../../services/member.service';
 import { DocumentService } from '../../services/document.service';
+import { CommandService } from '../../services/command.service';
 import { AssetAssignmentService } from '../../../inventory/services/asset-assignment.service';
 import {
   Member, STATUS_LABELS, RANK_LABELS, MemberStatus,
-  StatusHistoryEntry, RankHistoryEntry, MedicalRecord,
+  StatusHistoryEntry, RankHistoryEntry, TransferHistoryEntry, MedicalRecord,
   MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS
 } from '../../../../core/models/member.model';
+import { Command } from '../../../../core/models/command.model';
 import { MemberDocument } from '../../../../core/models/document.model';
 import { AssetAssignment } from '../../../../core/models/asset-assignment.model';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -24,11 +26,17 @@ export class MemberDetail implements OnInit {
   private fb = inject(FormBuilder);
   private memberService = inject(MemberService);
   private documentService = inject(DocumentService);
+  private commandService = inject(CommandService);
   private assetService = inject(AssetAssignmentService);
   private route = inject(ActivatedRoute);
   protected auth = inject(AuthService);
 
   uploadForm = this.fb.group({ description: [''] });
+  transferForm = this.fb.group({
+    toCommandId: [null as number | null],
+    transferredBy: ['', Validators.required],
+    reason: [''],
+  });
   activityForm = this.fb.group({
     title: ['', Validators.required],
     description: [''],
@@ -46,6 +54,12 @@ export class MemberDetail implements OnInit {
 
   member = signal<Member | null>(null);
   loading = signal(true);
+  allCommands = signal<Command[]>([]);
+  transferHistory = signal<TransferHistoryEntry[]>([]);
+  showTransferForm = signal(false);
+  showTransferHistory = signal(false);
+  transferSubmitting = signal(false);
+  transferError = signal('');
   documents = signal<MemberDocument[]>([]);
   docsLoading = signal(false);
   showUpload = signal(false);
@@ -99,6 +113,7 @@ export class MemberDetail implements OnInit {
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.commandService.getAll().subscribe({ next: c => this.allCommands.set(c), error: () => {} });
     this.memberService.getById(id).subscribe({
       next: m => {
         this.member.set(m);
@@ -107,6 +122,7 @@ export class MemberDetail implements OnInit {
         this.loadActivities(id);
         this.loadStatusHistory(id);
         this.loadRankHistory(id);
+        this.loadTransferHistory(id);
         this.loadAssignedAssets(id);
         if (this.canViewMedical) this.loadMedicalRecords(id);
       },
@@ -150,6 +166,37 @@ export class MemberDetail implements OnInit {
   deleteActivity(activityId: number) {
     this.memberService.deleteActivity(activityId).subscribe({
       next: () => this.loadActivities(this.member()!.id!),
+    });
+  }
+
+  loadTransferHistory(memberId: number) {
+    this.memberService.getTransferHistory(memberId).subscribe({
+      next: h => this.transferHistory.set(h),
+      error: () => {},
+    });
+  }
+
+  submitTransfer() {
+    if (this.transferForm.invalid || !this.member()?.id) return;
+    this.transferSubmitting.set(true);
+    this.transferError.set('');
+    const { toCommandId, transferredBy, reason } = this.transferForm.value;
+    this.memberService.transfer(this.member()!.id!, {
+      toCommandId: toCommandId ?? null,
+      transferredBy: transferredBy!,
+      reason: reason ?? undefined,
+    }).subscribe({
+      next: updated => {
+        this.member.set(updated);
+        this.transferSubmitting.set(false);
+        this.showTransferForm.set(false);
+        this.transferForm.reset();
+        this.loadTransferHistory(this.member()!.id!);
+      },
+      error: (err: any) => {
+        this.transferError.set(err?.error?.message ?? 'Transfer failed.');
+        this.transferSubmitting.set(false);
+      },
     });
   }
 
