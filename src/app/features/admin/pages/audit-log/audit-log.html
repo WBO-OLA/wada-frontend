@@ -1,0 +1,151 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Audit Log</h1>
+    <button (click)="applyFilters()" [disabled]="loading()"
+            class="px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors">
+      {{ loading() ? 'Loading...' : '↻ Refresh' }}
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Action</label>
+        <input [(ngModel)]="actionFilter" type="text" placeholder="e.g. MEMBER_CREATE"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Table</label>
+        <select [(ngModel)]="tableFilter"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500">
+          <option value="">All tables</option>
+          @for (t of targetTables; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">From</label>
+        <input [(ngModel)]="fromFilter" type="datetime-local"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">To</label>
+        <input [(ngModel)]="toFilter" type="datetime-local"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+      </div>
+    </div>
+    <div class="flex justify-end mt-3 gap-2">
+      <button (click)="actionFilter=''; tableFilter=''; fromFilter=''; toFilter=''; applyFilters()"
+              class="px-3 py-1.5 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+        Clear
+      </button>
+      <button (click)="applyFilters()"
+              class="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+        Apply Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Command filter -->
+  @if (commands().length > 0) {
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button (click)="setCommandFilter(null)"
+              [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+              class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+        All Commands
+      </button>
+      @for (c of commands(); track c.id) {
+        <button (click)="setCommandFilter(c.id!)"
+                [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
+                class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
+          {{ c.name }}{{ c.description ? ' · ' + c.description : '' }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (error()) {
+    <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading() && entries().length === 0) {
+    <div class="text-center py-16 text-gray-400 text-sm">Loading audit logs...</div>
+  } @else if (!loading() && entries().length === 0) {
+    <div class="bg-white rounded-xl p-10 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
+      No audit log entries found.
+    </div>
+  } @else {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Timestamp</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">User</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">Action</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">Table</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">Target ID</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">Command</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-gray-500">Service</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            @for (entry of entries(); track entry.id) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap font-mono">
+                  {{ formatDate(entry.createdAt) }}
+                </td>
+                <td class="px-4 py-3 font-medium text-gray-900">{{ entry.username }}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-mono">
+                    {{ entry.action }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-500 text-xs font-mono">{{ entry.targetTable }}</td>
+                <td class="px-4 py-3 text-gray-400 text-xs">
+                  {{ entry.targetId != null ? entry.targetId : '—' }}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                  @if (entry.commandId) {
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">{{ commandName(entry.commandId) }}</span>
+                  } @else {
+                    <span class="text-gray-300">—</span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">
+                    {{ entry.sourceService }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <p class="text-sm text-gray-500">
+        {{ totalElements() }} total
+        @if (totalPages() > 1) {
+          · page {{ currentPage() + 1 }} of {{ totalPages() }}
+        }
+      </p>
+      <div class="flex gap-2">
+        <button (click)="prev()" [disabled]="currentPage() === 0 || loading()"
+                class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+          ← Prev
+        </button>
+        <button (click)="next()" [disabled]="currentPage() >= totalPages() - 1 || loading()"
+                class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+          Next →
+        </button>
+      </div>
+    </div>
+  }
+</div>
