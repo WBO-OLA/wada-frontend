@@ -9,7 +9,8 @@ import { AssetAssignmentService } from '../../../inventory/services/asset-assign
 import {
   Member, STATUS_LABELS, RANK_LABELS, MemberStatus,
   StatusHistoryEntry, RankHistoryEntry, TransferHistoryEntry, MedicalRecord,
-  MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS
+  MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS,
+  ResponsibilityHistoryEntry
 } from '../../../../core/models/member.model';
 import { Command } from '../../../../core/models/command.model';
 import { MemberDocument } from '../../../../core/models/document.model';
@@ -32,6 +33,11 @@ export class MemberDetail implements OnInit {
   protected auth = inject(AuthService);
 
   uploadForm = this.fb.group({ description: [''] });
+  responsibilityForm = this.fb.group({
+    responsibility: ['', Validators.required],
+    changedBy: ['', Validators.required],
+    reason: [''],
+  });
   transferForm = this.fb.group({
     toCommandId: [null as number | null],
     transferredBy: ['', Validators.required],
@@ -85,6 +91,12 @@ export class MemberDetail implements OnInit {
   medicalSubmitting = signal(false);
   medicalError = signal('');
 
+  responsibilityHistory = signal<ResponsibilityHistoryEntry[]>([]);
+  showResponsibilityForm = signal(false);
+  showResponsibilityHistory = signal(false);
+  responsibilitySubmitting = signal(false);
+  responsibilityError = signal('');
+
   assignedAssets = signal<AssetAssignment[]>([]);
   showAssets = signal(false);
 
@@ -123,6 +135,7 @@ export class MemberDetail implements OnInit {
         this.loadStatusHistory(id);
         this.loadRankHistory(id);
         this.loadTransferHistory(id);
+        this.loadResponsibilityHistory(id);
         this.loadAssignedAssets(id);
         if (this.canViewMedical) this.loadMedicalRecords(id);
       },
@@ -173,6 +186,37 @@ export class MemberDetail implements OnInit {
     this.memberService.getTransferHistory(memberId).subscribe({
       next: h => this.transferHistory.set(h),
       error: () => {},
+    });
+  }
+
+  loadResponsibilityHistory(memberId: number) {
+    this.memberService.getResponsibilityHistory(memberId).subscribe({
+      next: h => this.responsibilityHistory.set(h),
+      error: () => {},
+    });
+  }
+
+  submitResponsibility() {
+    if (this.responsibilityForm.invalid || !this.member()?.id) return;
+    this.responsibilitySubmitting.set(true);
+    this.responsibilityError.set('');
+    const { responsibility, changedBy, reason } = this.responsibilityForm.value;
+    this.memberService.updateResponsibility(this.member()!.id!, {
+      responsibility: responsibility!,
+      changedBy: changedBy!,
+      reason: reason ?? undefined,
+    }).subscribe({
+      next: updated => {
+        this.member.set(updated);
+        this.responsibilitySubmitting.set(false);
+        this.showResponsibilityForm.set(false);
+        this.responsibilityForm.reset();
+        this.loadResponsibilityHistory(this.member()!.id!);
+      },
+      error: (err: any) => {
+        this.responsibilityError.set(err?.error?.message ?? 'Failed to update responsibility.');
+        this.responsibilitySubmitting.set(false);
+      },
     });
   }
 

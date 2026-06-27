@@ -28,6 +28,7 @@ export interface Member {
   photoPath?: string;
   unit?: string;
   role?: string;
+  responsibility?: string | null;
   dateOfBirth?: string;
   joinDate?: string;
   rank: MilitaryRank;
@@ -101,6 +102,21 @@ export interface TransferHistoryEntry {
 export interface MemberTransferRequest {
   toCommandId?: number | null;
   transferredBy: string;
+  reason?: string;
+}
+
+export interface MemberResponsibilityUpdateRequest {
+  responsibility: string;
+  changedBy: string;
+  reason?: string;
+}
+
+export interface ResponsibilityHistoryEntry {
+  id: number;
+  previousResponsibility?: string | null;
+  newResponsibility: string;
+  changedAt: string;
+  changedBy?: string;
   reason?: string;
 }
 

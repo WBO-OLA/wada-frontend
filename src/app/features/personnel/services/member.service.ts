@@ -7,7 +7,8 @@ import {
   Member, MedicalRecord, MemberActivity,
   MemberRankUpdateRequest, MemberStatusUpdateRequest,
   MemberTransferRequest, TransferHistoryEntry,
-  RankHistoryEntry, StatusHistoryEntry
+  RankHistoryEntry, StatusHistoryEntry,
+  MemberResponsibilityUpdateRequest, ResponsibilityHistoryEntry
 } from '../../../core/models/member.model';
 
 @Injectable({ providedIn: 'root' })
@@ -87,5 +88,13 @@ export class MemberService {
 
   getTransferHistory(id: number): Observable<TransferHistoryEntry[]> {
     return this.api.get<ApiResponse<TransferHistoryEntry[]>>(`${this.path}/${id}/transfer-history`).pipe(map(r => r.data));
+  }
+
+  updateResponsibility(id: number, request: MemberResponsibilityUpdateRequest): Observable<Member> {
+    return this.api.patch<ApiResponse<Member>>(`${this.path}/${id}/responsibility`, request).pipe(map(r => r.data));
+  }
+
+  getResponsibilityHistory(id: number): Observable<ResponsibilityHistoryEntry[]> {
+    return this.api.get<ApiResponse<ResponsibilityHistoryEntry[]>>(`${this.path}/${id}/responsibility-history`).pipe(map(r => r.data));
   }
 }

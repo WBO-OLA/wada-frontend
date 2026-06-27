@@ -58,6 +58,10 @@
           <p class="text-xs text-gray-500">Email</p>
           <p class="font-medium text-gray-900 mt-0.5">{{ member()!.email ?? '—' }}</p>
         </div>
+        <div class="col-span-2">
+          <p class="text-xs text-gray-500">Responsibility</p>
+          <p class="font-medium text-gray-900 mt-0.5">{{ member()!.responsibility || '—' }}</p>
+        </div>
         @if (member()!.notes) {
           <div class="col-span-2">
             <p class="text-xs text-gray-500">Notes</p>
@@ -403,6 +407,87 @@
                   <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
                     <div>{{ formatDate(entry.transferredAt) }}</div>
                     @if (entry.transferredBy) { <div>Auth: {{ entry.transferredBy }}</div> }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Responsibility -->
+    <div class="mt-4 bg-white rounded-xl shadow-sm border border-emerald-100 p-6">
+      <div class="flex justify-between items-center mb-1">
+        <button (click)="showResponsibilityHistory.set(!showResponsibilityHistory())"
+                class="flex-1 flex justify-between items-center text-sm font-semibold text-emerald-900">
+          <span>Responsibility History <span class="text-emerald-300 font-normal">({{ responsibilityHistory().length }})</span></span>
+          <span class="text-emerald-300 text-xs">{{ showResponsibilityHistory() ? '▲ Collapse' : '▼ Expand' }}</span>
+        </button>
+        @if (canEdit) {
+          <button (click)="showResponsibilityForm.set(!showResponsibilityForm())"
+                  class="ml-4 text-xs px-3 py-1.5 bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 transition">
+            {{ showResponsibilityForm() ? 'Cancel' : '✎ Assign' }}
+          </button>
+        }
+      </div>
+
+      @if (responsibilityError()) {
+        <div class="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ responsibilityError() }}</div>
+      }
+
+      @if (showResponsibilityForm()) {
+        <form [formGroup]="responsibilityForm" (ngSubmit)="submitResponsibility()"
+              class="mt-4 grid grid-cols-2 gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">New Responsibility *</label>
+            <input formControlName="responsibility" type="text" placeholder="e.g. Zone Intelligence Officer"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
+            <input formControlName="changedBy" type="text" placeholder="e.g. Commander name"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
+            <input formControlName="reason" type="text" placeholder="e.g. Restructuring"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div class="col-span-2 flex justify-end">
+            <button type="submit" [disabled]="responsibilityForm.invalid || responsibilitySubmitting()"
+                    class="px-4 py-1.5 text-xs bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
+              {{ responsibilitySubmitting() ? 'Saving...' : 'Confirm Assignment' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (showResponsibilityHistory()) {
+        <div class="mt-4">
+          @if (responsibilityHistory().length === 0) {
+            <p class="text-xs text-gray-400 text-center py-4">No responsibility changes recorded.</p>
+          } @else {
+            <div class="space-y-2">
+              @for (entry of responsibilityHistory(); track entry.id) {
+                <div class="flex items-start gap-3 p-3 bg-emerald-50 rounded-lg text-xs border border-emerald-100">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-medium">
+                        {{ entry.previousResponsibility || 'None' }}
+                      </span>
+                      <span class="text-emerald-400">→</span>
+                      <span class="px-2 py-0.5 rounded bg-emerald-800 text-white font-medium">
+                        {{ entry.newResponsibility }}
+                      </span>
+                    </div>
+                    @if (entry.reason) {
+                      <p class="text-gray-500 mt-1">Reason: {{ entry.reason }}</p>
+                    }
+                  </div>
+                  <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
+                    <div>{{ formatDate(entry.changedAt) }}</div>
+                    @if (entry.changedBy) { <div>Auth: {{ entry.changedBy }}</div> }
                   </div>
                 </div>
               }
