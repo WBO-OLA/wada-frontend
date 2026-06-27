@@ -35,6 +35,11 @@ export class CommandService {
     return this.api.put<ApiResponse<Command>>(`${this.path}/${id}`, request).pipe(map(r => r.data));
   }
 
+  assignCommander(commandId: number, memberId: number | null): Observable<Command> {
+    return this.api.patch<ApiResponse<Command>>(`${this.path}/${commandId}/commander`, { memberId })
+      .pipe(map(r => r.data));
+  }
+
   remove(id: number): Observable<void> {
     return this.api.delete<ApiResponse<void>>(`${this.path}/${id}`).pipe(map(() => undefined));
   }

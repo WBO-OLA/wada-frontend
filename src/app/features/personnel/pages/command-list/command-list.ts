@@ -1,41 +1,51 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommandService } from '../../services/command.service';
+import { MemberService } from '../../services/member.service';
 import { Command, CommandType, CommandWithDepth, COMMAND_TYPE_LABELS } from '../../../../core/models/command.model';
+import { Member, RANK_LABELS } from '../../../../core/models/member.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
 
 @Component({
   selector: 'app-command-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './command-list.html',
   styleUrl: './command-list.css',
 })
 export class CommandList implements OnInit {
   private fb = inject(FormBuilder);
   private commandService = inject(CommandService);
+  private memberService = inject(MemberService);
 
   commands = signal<Command[]>([]);
   tree = signal<CommandWithDepth[]>([]);
+  members = signal<Member[]>([]);
   loading = signal(true);
   error = signal('');
   editingId = signal<number | null>(null);
+  assigningCommandId = signal<number | null>(null);
+  assigningMemberId = signal<number | null>(null);
+  assignError = signal('');
 
   readonly types: CommandType[] = ['CHIEF', 'ZONE', 'BRIGADE', 'REGION', 'UNIT'];
   readonly typeLabels = COMMAND_TYPE_LABELS;
+  readonly rankLabels = RANK_LABELS;
 
   form = this.fb.group({
     name: ['', Validators.required],
     description: ['' as string | null],
     type: ['UNIT' as CommandType, Validators.required],
     parentId: [null as number | null],
+    commanderId: [null as number | null],
   });
 
   constructor() {}
 
   ngOnInit() {
     this.load();
+    this.memberService.getAll().subscribe({ next: m => this.members.set(m), error: () => {} });
   }
 
   load() {
@@ -51,6 +61,31 @@ export class CommandList implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  startAssignCommander(command: Command) {
+    this.assigningCommandId.set(command.id ?? null);
+    this.assigningMemberId.set(command.commander?.id ?? null);
+    this.assignError.set('');
+  }
+
+  cancelAssign() {
+    this.assigningCommandId.set(null);
+    this.assigningMemberId.set(null);
+    this.assignError.set('');
+  }
+
+  confirmAssign() {
+    const commandId = this.assigningCommandId();
+    if (commandId === null) return;
+    this.commandService.assignCommander(commandId, this.assigningMemberId()).subscribe({
+      next: () => { this.cancelAssign(); this.load(); },
+      error: (err: unknown) => this.assignError.set(this.extractMessage(err, 'Failed to assign commander.')),
+    });
+  }
+
+  memberDisplayName(m: Member): string {
+    return `${this.rankLabels[m.rank] ?? m.rank} ${m.firstName} ${m.lastName} (${m.militaryId})`;
   }
 
   // Parents selectable when editing must exclude the command itself and its descendants.
@@ -77,6 +112,7 @@ export class CommandList implements OnInit {
       description: command.description ?? '',
       type: command.type,
       parentId: command.parent?.id ?? null,
+      commanderId: command.commander?.id ?? null,
     });
   }
 
@@ -88,7 +124,7 @@ export class CommandList implements OnInit {
     if (this.form.invalid) return;
     this.error.set('');
     const value = this.form.getRawValue();
-    const request = { name: value.name!, description: value.description ?? undefined, type: value.type!, parentId: value.parentId };
+    const request = { name: value.name!, description: value.description ?? undefined, type: value.type!, parentId: value.parentId, commanderId: value.commanderId };
     const id = this.editingId();
 
     const result$ = id !== null
