@@ -44,14 +44,18 @@
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Commander (Optional)</label>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Commander *</label>
         <select formControlName="commanderId"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400">
-          <option [value]="null">— No commander assigned —</option>
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+                [class.border-red-300]="form.get('commanderId')?.invalid && form.get('commanderId')?.touched">
+          <option [value]="null">— Select commander —</option>
           @for (m of members(); track m.id) {
             <option [value]="m.id">{{ memberDisplayName(m) }}</option>
           }
         </select>
+        @if (form.get('commanderId')?.invalid && form.get('commanderId')?.touched) {
+          <p class="text-xs text-red-500 mt-0.5">Commander is required</p>
+        }
       </div>
       <div class="flex gap-2">
         <button type="submit" [disabled]="form.invalid"
@@ -121,7 +125,7 @@
                     <div class="flex items-center gap-2">
                       <select [(ngModel)]="assigningMemberId" [ngModelOptions]="{standalone: true}"
                               class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-slate-400 max-w-xs">
-                        <option [ngValue]="null">— Remove commander —</option>
+                        <option [ngValue]="null" disabled>— Select commander —</option>
                         @for (m of members(); track m.id) {
                           <option [ngValue]="m.id">{{ memberDisplayName(m) }}</option>
                         }

@@ -38,7 +38,7 @@ export class CommandList implements OnInit {
     description: ['' as string | null],
     type: ['UNIT' as CommandType, Validators.required],
     parentId: [null as number | null],
-    commanderId: [null as number | null],
+    commanderId: [null as number | null, Validators.required],
   });
 
   constructor() {}
