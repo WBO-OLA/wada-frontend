@@ -10,7 +10,7 @@ export type MilitaryRank =
 
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
-export type ActivityType = 'JOIN' | 'PROMOTION' | 'TRAINING' | 'INJURY' | 'MISSION' | 'AWARD' | 'RETIREMENT';
+export type ActivityType = 'JOIN' | 'PROMOTION' | 'TRAINING' | 'INJURY' | 'MISSION' | 'MISSION_SUCCESS' | 'MISSION_FAILED' | 'AWARD' | 'RETIREMENT';
 
 export interface Member {
   id?: number;
@@ -152,6 +152,8 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   TRAINING: 'Training',
   INJURY: 'Injury',
   MISSION: 'Mission',
+  MISSION_SUCCESS: 'Mission Accomplished',
+  MISSION_FAILED: 'Mission Failed',
   AWARD: 'Award',
   RETIREMENT: 'Retirement',
 };
@@ -162,6 +164,8 @@ export const ACTIVITY_TYPE_COLORS: Record<ActivityType, string> = {
   TRAINING: 'bg-purple-100 text-purple-700',
   INJURY: 'bg-orange-100 text-orange-700',
   MISSION: 'bg-indigo-100 text-indigo-700',
+  MISSION_SUCCESS: 'bg-green-100 text-green-700',
+  MISSION_FAILED: 'bg-red-100 text-red-700',
   AWARD: 'bg-green-100 text-green-700',
   RETIREMENT: 'bg-gray-100 text-gray-600',
 };

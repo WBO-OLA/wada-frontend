@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { environment } from '../../../../environments/environment';
 import {
   Member, MedicalRecord, MemberActivity,
   MemberRankUpdateRequest, MemberStatusUpdateRequest,
@@ -14,6 +16,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MemberService {
   private readonly path = 'personnel/members';
+  private http = inject(HttpClient);
 
   constructor(private api: ApiService) {}
 
@@ -96,5 +99,16 @@ export class MemberService {
 
   getResponsibilityHistory(id: number): Observable<ResponsibilityHistoryEntry[]> {
     return this.api.get<ApiResponse<ResponsibilityHistoryEntry[]>>(`${this.path}/${id}/responsibility-history`).pipe(map(r => r.data));
+  }
+
+  uploadPhoto(id: number, file: File): Observable<Member> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<ApiResponse<Member>>(`${environment.apiUrl}/personnel/members/${id}/photo`, form)
+      .pipe(map(r => r.data));
+  }
+
+  getPhotoUrl(id: number): string {
+    return `${environment.apiUrl}/personnel/members/${id}/photo`;
   }
 }

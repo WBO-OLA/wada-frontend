@@ -97,6 +97,9 @@ export class MemberDetail implements OnInit {
   responsibilitySubmitting = signal(false);
   responsibilityError = signal('');
 
+  photoUploading = signal(false);
+  photoError = signal('');
+
   assignedAssets = signal<AssetAssignment[]>([]);
   showAssets = signal(false);
 
@@ -104,7 +107,7 @@ export class MemberDetail implements OnInit {
   readonly rankLabels = RANK_LABELS;
   readonly activityTypeLabels = ACTIVITY_TYPE_LABELS;
   readonly activityTypeColors = ACTIVITY_TYPE_COLORS;
-  readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'INJURY', 'MISSION', 'AWARD', 'RETIREMENT'];
+  readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'TRAINING', 'INJURY', 'MISSION', 'MISSION_SUCCESS', 'MISSION_FAILED', 'AWARD', 'RETIREMENT'];
   readonly statusColors: Record<MemberStatus, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
     INJURED: 'bg-yellow-100 text-yellow-700',
@@ -269,6 +272,29 @@ export class MemberDetail implements OnInit {
     this.assetService.getActiveByMember(memberId).subscribe({
       next: a => this.assignedAssets.set(a),
       error: () => {},
+    });
+  }
+
+  photoUrl(id: number | undefined): string | null {
+    if (!id) return null;
+    return this.memberService.getPhotoUrl(id) + '?t=' + (this.member()?.updatedAt ?? '');
+  }
+
+  onPhotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length || !this.member()?.id) return;
+    const file = input.files[0];
+    this.photoUploading.set(true);
+    this.photoError.set('');
+    this.memberService.uploadPhoto(this.member()!.id!, file).subscribe({
+      next: updated => {
+        this.member.set(updated);
+        this.photoUploading.set(false);
+      },
+      error: (err: any) => {
+        this.photoError.set(err?.error?.message ?? 'Photo upload failed.');
+        this.photoUploading.set(false);
+      },
     });
   }
 
