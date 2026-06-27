@@ -11,9 +11,12 @@ export class PurchaseOrderService {
 
   constructor(private api: ApiService) {}
 
-  getAll(status?: OrderStatus): Observable<PurchaseOrder[]> {
-    const url = status ? `${this.path}?status=${status}` : this.path;
-    return this.api.get<ApiResponse<PurchaseOrder[]>>(url).pipe(map(r => r.data));
+  getAll(status?: OrderStatus, commandId?: number | null): Observable<PurchaseOrder[]> {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (commandId != null) params.set('commandId', String(commandId));
+    const qs = params.toString();
+    return this.api.get<ApiResponse<PurchaseOrder[]>>(qs ? `${this.path}?${qs}` : this.path).pipe(map(r => r.data));
   }
 
   create(request: Partial<PurchaseOrder>): Observable<PurchaseOrder> {

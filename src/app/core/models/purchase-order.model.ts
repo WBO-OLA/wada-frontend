@@ -13,6 +13,7 @@ export interface PurchaseOrder {
   orderedBy?: string;
   expectedDeliveryDate?: string;
   notes?: string;
+  commandId?: number | null;
   createdAt?: string;
 }
 

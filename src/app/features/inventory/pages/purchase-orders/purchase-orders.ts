@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { PurchaseOrderService } from '../../services/purchase-order.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CommandService } from '../../../personnel/services/command.service';
 import {
   PurchaseOrder, OrderStatus,
   ORDER_STATUS_LABELS, ORDER_STATUS_COLORS
 } from '../../../../core/models/purchase-order.model';
+import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-purchase-orders',
@@ -18,12 +20,15 @@ import {
 export class PurchaseOrdersPage implements OnInit {
   private fb = inject(FormBuilder);
   private service = inject(PurchaseOrderService);
+  private commandService = inject(CommandService);
   private auth = inject(AuthService);
 
   get canEdit(): boolean { return this.auth.canEdit(); }
   get currentUser(): string { return this.auth.getUser()?.username ?? ''; }
 
   orders = signal<PurchaseOrder[]>([]);
+  commands = signal<Command[]>([]);
+  commandFilter = signal<number | null>(null);
   loading = signal(true);
   showForm = signal(false);
   submitting = signal(false);
@@ -39,18 +44,33 @@ export class PurchaseOrdersPage implements OnInit {
     itemSku: [''],
     quantity: [1, [Validators.required, Validators.min(1)]],
     unitPrice: [0, [Validators.required, Validators.min(0.01)]],
+    commandId: [null as number | null],
     expectedDeliveryDate: [''],
     notes: [''],
   });
 
-  ngOnInit() { this.load(); }
+  commandName(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.commands().find(x => x.id === id);
+    return c ? (c.name + (c.description ? ` (${c.description})` : '')) : '';
+  }
+
+  ngOnInit() {
+    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
+    this.load();
+  }
 
   load() {
     this.loading.set(true);
-    this.service.getAll().subscribe({
+    this.service.getAll(undefined, this.commandFilter()).subscribe({
       next: orders => { this.orders.set(orders); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
+  }
+
+  setCommandFilter(id: number | null) {
+    this.commandFilter.set(id);
+    this.load();
   }
 
   submit() {

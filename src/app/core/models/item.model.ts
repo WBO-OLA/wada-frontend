@@ -6,6 +6,7 @@ export interface Item {
   quantity: number;
   unitPrice: number;
   category?: string;
+  commandId?: number | null;
   warehouse?: { id: number; name: string };
   createdAt?: string;
   updatedAt?: string;

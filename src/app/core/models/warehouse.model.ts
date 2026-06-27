@@ -5,4 +5,5 @@ export interface Warehouse {
   capacity?: number;
   description?: string;
   active: boolean;
+  commandId?: number | null;
 }
