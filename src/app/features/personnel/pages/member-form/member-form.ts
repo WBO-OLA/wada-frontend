@@ -23,6 +23,7 @@ export class MemberForm implements OnInit {
     lastName: ['', Validators.required],
     gender: [null as Gender | null, Validators.required],
     nationality: ['', Validators.required],
+    address: ['', Validators.required],
     nationalId: [''],
     phone: [''],
     email: ['', [Validators.required, Validators.email]],
