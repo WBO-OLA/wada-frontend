@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { ReportService } from '../../services/report.service';
 import { CommandService } from '../../../personnel/services/command.service';
 import { DashboardReport } from '../../../../core/models/report.model';
@@ -8,7 +8,7 @@ import { Command } from '../../../../core/models/command.model';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DecimalPipe],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })
