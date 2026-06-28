@@ -1,41 +1,85 @@
 <div>
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Command Hierarchy</h1>
-      <p class="text-sm text-gray-500 mt-1">Chain of command from Chief down to units</p>
+      <h1 class="text-2xl font-bold text-gray-900">Personnel Management</h1>
+      <p class="text-sm text-gray-500 mt-1">Command structure — Ajajaa Walii Galaa down to units</p>
     </div>
     @if (canEdit) {
-      <button (click)="showForm.set(!showForm())"
-              class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
+      <button (click)="showForm.set(!showForm()); startCreate()"
+              class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors flex-shrink-0">
         {{ showForm() ? '✕ Cancel' : '+ New Command' }}
       </button>
     }
   </div>
 
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-gray-400 uppercase tracking-wider">Total Commands</p>
+      <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ loading() ? '—' : totalCount() }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-blue-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-blue-500 uppercase tracking-wider">Zones</p>
+      <p class="text-2xl font-bold text-blue-700 mt-0.5">{{ loading() ? '—' : zoneCount() }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-amber-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-amber-500 uppercase tracking-wider">Brigades</p>
+      <p class="text-2xl font-bold text-amber-700 mt-0.5">{{ loading() ? '—' : brigadeCount() }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-green-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-green-500 uppercase tracking-wider">Commanders Assigned</p>
+      <p class="text-2xl font-bold text-green-700 mt-0.5">{{ loading() ? '—' : withCommander() }}</p>
+    </div>
+  </div>
+
+  <!-- Tab nav -->
+  <div class="flex gap-1 mb-5 border-b border-gray-200">
+    <a routerLink="/personnel" [routerLinkActiveOptions]="{ exact: true }"
+       class="px-4 py-2 text-sm font-medium border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-700 transition-colors"
+       routerLinkActive="!border-slate-900 !text-slate-900">
+      Members
+    </a>
+    <a routerLink="/personnel/commands"
+       class="px-4 py-2 text-sm font-medium border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-700 transition-colors"
+       routerLinkActive="!border-slate-900 !text-slate-900">
+      Command Hierarchy
+    </a>
+  </div>
+
+  <!-- Errors -->
   @if (error()) {
-    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ error() }}</div>
+    <div class="mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+      <span>⚠</span><span>{{ error() }}</span>
+    </div>
   }
   @if (assignError()) {
-    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ assignError() }}</div>
+    <div class="mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+      <span>⚠</span><span>{{ assignError() }}</span>
+    </div>
   }
 
   <!-- Create / Edit form -->
   @if (showForm() && canEdit) {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-      <h2 class="text-sm font-semibold text-gray-700 mb-3">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5">
+      <h2 class="text-sm font-semibold text-gray-700 mb-4">
         {{ editingId() !== null ? 'Edit Command' : 'New Command' }}
       </h2>
       <form [formGroup]="form" (ngSubmit)="save()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
+
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Maqaa Afaan Oromoodhaan *</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Maqaa (Afaan Oromoo) *</label>
           <input formControlName="name" type="text" placeholder="e.g. Ajajaa Walii Galaa"
                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400" />
         </div>
+
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">English Name</label>
-          <input formControlName="description" type="text" placeholder="e.g. Chief Command"
+          <input formControlName="description" type="text" placeholder="e.g. West Zone"
                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400" />
         </div>
+
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Type *</label>
           <select formControlName="type"
@@ -45,6 +89,7 @@
             }
           </select>
         </div>
+
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Parent Command</label>
           <select formControlName="parentId"
@@ -55,12 +100,12 @@
             }
           </select>
         </div>
+
         @if (editingId() !== null) {
           <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Commander *</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Commander</label>
             <select formControlName="commanderId"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
-                    [class.border-red-300]="form.get('commanderId')?.invalid && form.get('commanderId')?.touched">
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400">
               <option [value]="null">— Select commander —</option>
               @for (m of membersForCommand(editingId()); track m.id) {
                 <option [value]="m.id">{{ memberDisplayName(m) }}</option>
@@ -71,118 +116,166 @@
             }
           </div>
         }
+
         <div class="flex gap-2">
           <button type="submit" [disabled]="form.invalid"
-                  class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50">
+                  class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50">
             {{ editingId() !== null ? 'Update' : 'Create' }}
           </button>
           @if (editingId() !== null) {
             <button type="button" (click)="cancelEdit()"
-                    class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                    class="px-4 py-2 border border-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
               Cancel
             </button>
           }
         </div>
+
       </form>
     </div>
   }
 
   <!-- Hierarchy tree -->
   @if (loading()) {
-    <div class="p-12 text-center text-gray-400 text-sm">Loading commands...</div>
-  } @else if (tree().length === 0) {
-    <div class="p-12 text-center text-gray-400 text-sm">No commands yet. Create the first one above.</div>
+    <div class="p-12 text-center text-gray-400 text-sm">Loading command structure…</div>
+  } @else if (displayItems().length === 0) {
+    <div class="p-12 text-center text-gray-400 text-sm">
+      No commands yet.
+      @if (canEdit) { <span>Use "+ New Command" above to create the first one.</span> }
+    </div>
   } @else {
-    <div class="space-y-2">
-      @for (c of tree(); track c.id) {
-        <div class="flex items-stretch" [style.paddingLeft.px]="c.depth * 28">
+    <div class="space-y-1.5">
 
-          <!-- Connector line -->
-          @if (c.depth > 0) {
-            <div class="flex-shrink-0 flex flex-col items-center mr-2" style="width: 16px">
-              <div class="w-px flex-1 bg-gray-200"></div>
-              <div class="w-3 h-px bg-gray-200 self-start mt-5"></div>
-              <div class="flex-1"></div>
+      @for (item of displayItems(); track $index) {
+
+        @if (item.kind === 'section') {
+          <!-- Section divider -->
+          <div class="flex items-center gap-3 pt-4 pb-1 px-1">
+            <div class="flex-1 h-px" [class]="item.colorKey === 'blue' ? 'bg-blue-200' : 'bg-amber-200'"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-xs font-bold uppercase tracking-widest" [class]="sectionLabelClass(item.colorKey)">
+                {{ item.label }}
+              </span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="sectionCountClass(item.colorKey)">
+                {{ item.count }}
+              </span>
             </div>
-          }
-
-          <!-- Command card -->
-          <div class="flex-1 min-w-0 rounded-xl border transition-colors mb-0.5"
-               [class]="cardClass(c.type)">
-            <div class="flex items-center gap-4 px-4 py-3 flex-wrap">
-
-              <!-- Type badge + name -->
-              <div class="flex items-center gap-3 flex-1 min-w-0">
-                <span class="flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full" [class]="typeBadgeClass(c.type)">
-                  {{ typeShortLabels[c.type] }}
-                </span>
-                <div class="min-w-0">
-                  <p class="font-semibold text-sm truncate" [class]="nameClass(c.type)">{{ c.name }}</p>
-                  @if (c.description) {
-                    <p class="text-xs text-gray-400 truncate">{{ c.description }}</p>
-                  }
-                </div>
-              </div>
-
-              <!-- Commander -->
-              <div class="flex-shrink-0 min-w-0">
-                @if (assigningCommandId() === c.id) {
-                  <div class="flex items-center gap-2">
-                    <select [(ngModel)]="assigningMemberId" [ngModelOptions]="{standalone: true}"
-                            class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-slate-400 max-w-48">
-                      <option [ngValue]="null" disabled>— Select —</option>
-                      @for (m of membersForCommand(assigningCommandId()); track m.id) {
-                        <option [ngValue]="m.id">{{ memberDisplayName(m) }}</option>
-                      }
-                    </select>
-                    @if (membersForCommand(assigningCommandId()).length === 0) {
-                      <span class="text-xs text-amber-600">No members</span>
-                    }
-                    <button (click)="confirmAssign()"
-                            class="text-xs px-2 py-1 bg-slate-800 text-white rounded hover:bg-slate-700 transition">Confirm</button>
-                    <button (click)="cancelAssign()"
-                            class="text-xs px-2 py-1 border border-gray-200 text-gray-600 rounded hover:bg-gray-50 transition">✕</button>
-                  </div>
-                } @else if (c.commander) {
-                  <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {{ c.commander.firstName[0] }}{{ c.commander.lastName[0] }}
-                    </div>
-                    <div>
-                      <p class="text-xs font-medium text-gray-800">{{ c.commander.firstName }} {{ c.commander.lastName }}</p>
-                      <p class="text-xs text-gray-400">{{ rankLabels[c.commander.rank] }} · {{ c.commander.militaryId }}</p>
-                    </div>
-                    @if (canEdit) {
-                      <button (click)="startAssignCommander(c)" title="Change commander"
-                              class="text-gray-300 hover:text-slate-600 transition text-xs">✎</button>
-                    }
-                  </div>
-                } @else {
-                  @if (canEdit) {
-                    <button (click)="startAssignCommander(c)"
-                            class="text-xs text-gray-400 hover:text-slate-700 border border-dashed border-gray-300 px-2 py-1 rounded transition">
-                      + Assign Commander
-                    </button>
-                  } @else {
-                    <span class="text-xs text-gray-400">No commander</span>
-                  }
-                }
-              </div>
-
-              <!-- Actions -->
-              @if (canEdit) {
-                <div class="flex-shrink-0 flex items-center gap-2">
-                  <button (click)="startEdit(c); showForm.set(true)"
-                          class="text-xs px-2.5 py-1 border border-gray-200 text-gray-600 rounded hover:bg-gray-100 transition">Edit</button>
-                  <button (click)="delete(c)"
-                          class="text-xs px-2.5 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50 transition">Delete</button>
-                </div>
-              }
-
-            </div>
+            <div class="flex-1 h-px" [class]="item.colorKey === 'blue' ? 'bg-blue-200' : 'bg-amber-200'"></div>
           </div>
-        </div>
+        }
+
+        @if (item.kind === 'node') {
+          <!-- Command card row -->
+          <div class="flex items-stretch" [style.paddingLeft.px]="item.cmd.depth * 24">
+
+            <!-- Tree connector -->
+            @if (item.cmd.depth > 0) {
+              <div class="flex-shrink-0 flex flex-col mr-2" style="width:16px">
+                <div class="w-px flex-1 bg-gray-200"></div>
+                <div class="w-3 h-px bg-gray-200 self-start mt-5"></div>
+                <div class="flex-1"></div>
+              </div>
+            }
+
+            <!-- Card -->
+            <div class="flex-1 min-w-0 rounded-xl border transition-shadow hover:shadow-sm"
+                 [ngClass]="cardClass(item.cmd.type)">
+              <div class="flex items-center gap-3 px-4 py-3 flex-wrap">
+
+                <!-- Type badge + name/description -->
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <span class="flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full" [ngClass]="typeBadgeClass(item.cmd.type)">
+                    {{ typeShortLabels[item.cmd.type] }}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-sm truncate" [ngClass]="nameClass(item.cmd.type)">
+                      {{ item.cmd.name }}
+                    </p>
+                    @if (item.cmd.description) {
+                      <p class="text-xs truncate" [ngClass]="descClass(item.cmd.type)">{{ item.cmd.description }}</p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Commander -->
+                <div class="flex-shrink-0">
+                  @if (assigningCommandId() === item.cmd.id) {
+                    <div class="flex items-center gap-2">
+                      <select [(ngModel)]="assigningMemberId" [ngModelOptions]="{standalone: true}"
+                              class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none max-w-44 bg-white">
+                        <option [ngValue]="null" disabled>— Select —</option>
+                        @for (m of membersForCommand(assigningCommandId()); track m.id) {
+                          <option [ngValue]="m.id">{{ memberDisplayName(m) }}</option>
+                        }
+                      </select>
+                      @if (membersForCommand(assigningCommandId()).length === 0) {
+                        <span class="text-xs text-amber-600">No members</span>
+                      }
+                      <button (click)="confirmAssign()"
+                              class="text-xs px-2 py-1 bg-slate-800 text-white rounded hover:bg-slate-700 transition">OK</button>
+                      <button (click)="cancelAssign()"
+                              class="text-xs px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 transition text-gray-600">✕</button>
+                    </div>
+                  } @else if (item.cmd.commander) {
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-full bg-slate-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {{ item.cmd.commander.firstName[0] }}{{ item.cmd.commander.lastName[0] }}
+                      </div>
+                      <div class="hidden sm:block">
+                        <p class="text-xs font-medium" [class]="item.cmd.type === 'CHIEF' ? 'text-white' : 'text-gray-800'">
+                          {{ item.cmd.commander.firstName }} {{ item.cmd.commander.lastName }}
+                        </p>
+                        <p class="text-xs" [class]="item.cmd.type === 'CHIEF' ? 'text-slate-400' : 'text-gray-400'">
+                          {{ rankLabels[item.cmd.commander.rank] }} · {{ item.cmd.commander.militaryId }}
+                        </p>
+                      </div>
+                      @if (canEdit) {
+                        <button (click)="startAssignCommander(item.cmd)" title="Change commander"
+                                class="text-xs opacity-50 hover:opacity-100 transition"
+                                [class]="item.cmd.type === 'CHIEF' ? 'text-slate-300' : 'text-gray-400'">✎</button>
+                      }
+                    </div>
+                  } @else {
+                    @if (canEdit) {
+                      <button (click)="startAssignCommander(item.cmd)"
+                              class="text-xs border border-dashed px-2.5 py-1 rounded transition"
+                              [class]="item.cmd.type === 'CHIEF'
+                                ? 'border-slate-500 text-slate-400 hover:border-slate-300 hover:text-slate-200'
+                                : 'border-gray-300 text-gray-400 hover:text-slate-700 hover:border-gray-400'">
+                        + Assign Commander
+                      </button>
+                    } @else {
+                      <span class="text-xs" [class]="item.cmd.type === 'CHIEF' ? 'text-slate-500' : 'text-gray-400'">
+                        No commander
+                      </span>
+                    }
+                  }
+                </div>
+
+                <!-- Actions -->
+                @if (canEdit) {
+                  <div class="flex-shrink-0 flex items-center gap-1.5">
+                    <button (click)="startEdit(item.cmd); showForm.set(true)"
+                            class="text-xs px-2.5 py-1 border rounded transition"
+                            [class]="item.cmd.type === 'CHIEF'
+                              ? 'border-slate-500 text-slate-300 hover:bg-slate-700'
+                              : 'border-gray-200 text-gray-600 hover:bg-gray-100'">
+                      Edit
+                    </button>
+                    <button (click)="delete(item.cmd)"
+                            class="text-xs px-2.5 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50 transition">
+                      Delete
+                    </button>
+                  </div>
+                }
+
+              </div>
+            </div>
+
+          </div>
+        }
+
       }
     </div>
   }
+
 </div>
