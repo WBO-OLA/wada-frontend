@@ -208,6 +208,8 @@ export class AdminUsersPage implements OnInit {
 
   roleColor(role: string): string { return ROLE_COLORS[role] ?? ROLE_COLORS['USER']; }
 
+  countByRole(role: string): number { return this.users().filter(u => u.role === role).length; }
+
   formatDate(dt: string): string {
     if (!dt) return '—';
     return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
