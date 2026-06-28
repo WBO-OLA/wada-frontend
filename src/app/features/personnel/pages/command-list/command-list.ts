@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommandService } from '../../services/command.service';
 import { MemberService } from '../../services/member.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Command, CommandType, CommandWithDepth, COMMAND_TYPE_LABELS } from '../../../../core/models/command.model';
 import { Member, RANK_LABELS } from '../../../../core/models/member.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
@@ -18,6 +19,7 @@ export class CommandList implements OnInit {
   private fb = inject(FormBuilder);
   private commandService = inject(CommandService);
   private memberService = inject(MemberService);
+  private auth = inject(AuthService);
 
   commands = signal<Command[]>([]);
   tree = signal<CommandWithDepth[]>([]);
@@ -28,10 +30,45 @@ export class CommandList implements OnInit {
   assigningCommandId = signal<number | null>(null);
   assigningMemberId = signal<number | null>(null);
   assignError = signal('');
+  showForm = signal(false);
+
+  get canEdit(): boolean { return this.auth.canEdit(); }
 
   readonly types: CommandType[] = ['CHIEF', 'ZONE', 'BRIGADE', 'REGION', 'UNIT'];
   readonly typeLabels = COMMAND_TYPE_LABELS;
   readonly rankLabels = RANK_LABELS;
+
+  readonly typeShortLabels: Record<CommandType, string> = {
+    CHIEF: 'CHIEF',
+    ZONE: 'ZONE',
+    BRIGADE: 'BRIGADE',
+    REGION: 'REGION',
+    UNIT: 'UNIT',
+  };
+
+  cardClass(type: CommandType): string {
+    switch (type) {
+      case 'CHIEF':   return 'border-slate-700 bg-slate-900 text-white';
+      case 'ZONE':    return 'border-blue-200 bg-blue-50';
+      case 'BRIGADE': return 'border-amber-200 bg-amber-50';
+      case 'REGION':  return 'border-purple-200 bg-purple-50';
+      default:        return 'border-gray-200 bg-white';
+    }
+  }
+
+  typeBadgeClass(type: CommandType): string {
+    switch (type) {
+      case 'CHIEF':   return 'bg-white text-slate-900';
+      case 'ZONE':    return 'bg-blue-600 text-white';
+      case 'BRIGADE': return 'bg-amber-600 text-white';
+      case 'REGION':  return 'bg-purple-600 text-white';
+      default:        return 'bg-gray-200 text-gray-700';
+    }
+  }
+
+  nameClass(type: CommandType): string {
+    return type === 'CHIEF' ? 'text-white' : 'text-gray-900';
+  }
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -128,6 +165,7 @@ export class CommandList implements OnInit {
 
   cancelEdit() {
     this.startCreate();
+    this.showForm.set(false);
   }
 
   save() {
@@ -144,6 +182,7 @@ export class CommandList implements OnInit {
     result$.subscribe({
       next: () => {
         this.startCreate();
+        this.showForm.set(false);
         this.load();
       },
       error: (err: unknown) => this.error.set(this.extractMessage(err, 'Failed to save command.')),
