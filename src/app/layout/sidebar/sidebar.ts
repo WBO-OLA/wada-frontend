@@ -27,6 +27,13 @@ export class Sidebar implements OnInit {
   commandSelectorOpen = false;
 
   get isAdmin(): boolean { return this.auth.isAdmin(); }
+  get isGlobal(): boolean { return this.auth.isGlobal(); }
+  get userCommandName(): string {
+    const id = this.auth.getCommandId();
+    if (!id) return '';
+    const cmd = this.commandTree.find(c => c.id === id);
+    return cmd?.name ?? '';
+  }
 
   ngOnInit(): void {
     this.commandService.getAll().subscribe(commands => {

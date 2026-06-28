@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ReportService } from '../../services/report.service';
 import { CommandService } from '../../../personnel/services/command.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { DashboardReport } from '../../../../core/models/report.model';
 import { Command } from '../../../../core/models/command.model';
 
@@ -22,9 +23,16 @@ export class ReportsPage implements OnInit {
 
   private reportService = inject(ReportService);
   private commandService = inject(CommandService);
+  private auth = inject(AuthService);
+
+  get isGlobal(): boolean { return this.auth.isGlobal(); }
 
   ngOnInit() {
-    this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
+    if (!this.isGlobal) {
+      this.commandFilter.set(this.auth.getCommandId());
+    } else {
+      this.commandService.getAll().subscribe({ next: c => this.commands.set(c), error: () => {} });
+    }
     this.load();
   }
 
