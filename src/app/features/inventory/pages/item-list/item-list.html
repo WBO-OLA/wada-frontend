@@ -1,25 +1,85 @@
 <div>
+
+  <!-- Header -->
   <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-    <h1 class="text-2xl font-bold text-gray-900">Inventory</h1>
-    <div class="flex gap-2 flex-wrap">
-      <a routerLink="stock"
-         class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-        Stock Movement
-      </a>
-      @if (canEdit) {
-        <button (click)="openCreate()"
-                class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
-          + Add Item
-        </button>
-      }
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Inventory Management</h1>
+      <p class="text-sm text-gray-500 mt-1">Track items, stock levels and assignments</p>
     </div>
+    @if (canEdit) {
+      <button (click)="openCreate()"
+              class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+        + Add Item
+      </button>
+    }
   </div>
 
+  <!-- Stats cards -->
+  @if (!loading() && items().length > 0) {
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Total Items</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">{{ totalItems() }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ categoryCount() }} categor{{ categoryCount() !== 1 ? 'ies' : 'y' }}</p>
+      </div>
+      <div class="bg-white rounded-xl border shadow-sm px-4 py-4"
+           [class]="lowStockCount() > 0 ? 'border-red-100' : 'border-gray-100'">
+        <p class="text-xs uppercase tracking-wider" [class]="lowStockCount() > 0 ? 'text-red-400' : 'text-gray-400'">
+          Low Stock
+        </p>
+        <p class="text-2xl font-bold mt-1" [class]="lowStockCount() > 0 ? 'text-red-600' : 'text-gray-500'">
+          {{ lowStockCount() }}
+        </p>
+        <p class="text-xs mt-1" [class]="lowStockCount() > 0 ? 'text-red-400' : 'text-gray-400'">
+          {{ lowStockCount() > 0 ? 'Needs restocking' : 'All adequate' }}
+        </p>
+      </div>
+      <div class="bg-white rounded-xl border border-blue-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-blue-400 uppercase tracking-wider">Total Value</p>
+        <p class="text-2xl font-bold text-blue-700 mt-1">{{ totalValue() | currency:'USD':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-gray-400 mt-1">Stock × unit price</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Showing</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">{{ filteredItems().length }}</p>
+        <p class="text-xs text-gray-400 mt-1">of {{ totalItems() }} items</p>
+      </div>
+    </div>
+  }
+
+  <!-- Tab Nav -->
+  <div class="flex gap-1 mb-6 border-b border-gray-200">
+    <a routerLink="/inventory" routerLinkActive="border-slate-900 text-slate-900"
+       [routerLinkActiveOptions]="{exact: true}"
+       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Items
+    </a>
+    <a routerLink="/inventory/stock" routerLinkActive="border-slate-900 text-slate-900"
+       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Stock Movement
+    </a>
+    <a routerLink="/inventory/purchase-orders" routerLinkActive="border-slate-900 text-slate-900"
+       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Purchase Orders
+    </a>
+    <a routerLink="/inventory/assignments" routerLinkActive="border-slate-900 text-slate-900"
+       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px">
+      Assignments
+    </a>
+  </div>
+
+  <!-- Alerts -->
   @if (error()) {
-    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ error() }}</div>
+    <div class="mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+      <span>⚠ {{ error() }}</span>
+      <button (click)="error.set('')" class="ml-auto text-red-400 hover:text-red-700">✕</button>
+    </div>
   }
   @if (success()) {
-    <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">{{ success() }}</div>
+    <div class="mb-4 flex items-start gap-2 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">
+      <span>✓ {{ success() }}</span>
+      <button (click)="success.set('')" class="ml-auto text-green-400 hover:text-green-700">✕</button>
+    </div>
   }
 
   <!-- Add / Edit form -->
@@ -28,12 +88,12 @@
       <h2 class="text-sm font-semibold text-gray-900 mb-4">{{ editingId() ? 'Edit Item' : 'New Item' }}</h2>
       <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
           <input formControlName="name" type="text" placeholder="e.g. Rifle M4"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">SKU *</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">SKU <span class="text-red-500">*</span></label>
           <input formControlName="sku" type="text" placeholder="e.g. WPN-M4-001"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
@@ -46,19 +106,19 @@
           <label class="block text-xs font-medium text-gray-700 mb-1">Warehouse</label>
           <select formControlName="warehouseId"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
-            <option [value]="null">No warehouse</option>
+            <option [value]="null">— No warehouse —</option>
             @for (w of warehouses(); track w.id) {
               <option [value]="w.id">{{ w.name }}</option>
             }
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Quantity *</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
           <input formControlName="quantity" type="number" min="0"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Unit Price (USD) *</label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Unit Price (USD) <span class="text-red-500">*</span></label>
           <input formControlName="unitPrice" type="number" min="0" step="0.01"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
@@ -77,13 +137,13 @@
           <input formControlName="description" type="text"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
         </div>
-        <div class="col-span-1 sm:col-span-2 flex justify-end gap-3 pt-2">
+        <div class="sm:col-span-2 flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button type="button" (click)="cancelForm()"
                   class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Cancel
           </button>
           <button type="submit" [disabled]="form.invalid || saving()"
-                  class="px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors">
+                  class="px-5 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors font-medium">
             {{ saving() ? 'Saving...' : (editingId() ? 'Save Changes' : 'Add Item') }}
           </button>
         </div>
@@ -91,31 +151,15 @@
     </div>
   }
 
-  <!-- Command filter -->
-  @if (commands().length > 0) {
-    <div class="flex flex-wrap gap-2 mb-4">
-      <button (click)="setCommandFilter(null)"
-              [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
-              class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
-        All Commands
-      </button>
-      @for (c of commands(); track c.id) {
-        <button (click)="setCommandFilter(c.id!)"
-                [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-300'"
-                class="px-3 py-1.5 text-xs rounded-lg hover:opacity-90 transition-colors">
-          {{ c.name }}{{ c.description ? ' · ' + c.description : '' }}
-        </button>
-      }
-    </div>
-  }
-
-  <!-- Filters -->
+  <!-- Filter bar -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
-             type="text" placeholder="Search name or SKU..."
-             class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+        <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+               type="text" placeholder="Search name or SKU..."
+               class="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      </div>
       <select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)"
               class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
         <option value="">All categories</option>
@@ -123,7 +167,6 @@
           <option [value]="cat">{{ cat }}</option>
         }
       </select>
-
       <select [ngModel]="warehouseFilter()" (ngModelChange)="warehouseFilter.set($event)"
               class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
         <option value="">All warehouses</option>
@@ -133,10 +176,27 @@
       </select>
     </div>
 
+    @if (commands().length > 0) {
+      <div class="mt-3 flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+        <button (click)="setCommandFilter(null)"
+                class="px-3 py-1 text-xs rounded-lg transition-colors"
+                [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'">
+          All Commands
+        </button>
+        @for (c of commands(); track c.id) {
+          <button (click)="setCommandFilter(c.id!)"
+                  class="px-3 py-1 text-xs rounded-lg transition-colors"
+                  [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'">
+            {{ c.name }}
+          </button>
+        }
+      </div>
+    }
+
     @if (searchTerm() || categoryFilter() || warehouseFilter()) {
-      <div class="mt-3 flex items-center gap-2">
+      <div class="mt-2 flex items-center gap-3">
         <span class="text-xs text-gray-500">{{ filteredItems().length }} result{{ filteredItems().length !== 1 ? 's' : '' }}</span>
-        <button (click)="clearFilters()" class="text-xs text-slate-600 underline hover:text-slate-900">Clear filters</button>
+        <button (click)="clearFilters()" class="text-xs text-red-400 hover:text-red-600 underline">Clear filters</button>
       </div>
     }
   </div>
@@ -146,69 +206,127 @@
     @if (loading()) {
       <div class="p-12 text-center text-gray-400 text-sm">Loading items...</div>
     } @else if (filteredItems().length === 0) {
-      <div class="p-12 text-center text-gray-400 text-sm">
-        {{ items().length === 0 ? 'No items in inventory yet.' : 'No items match your filters.' }}
+      <div class="p-12 text-center">
+        <p class="text-gray-400 text-sm">{{ items().length === 0 ? 'No items in inventory yet.' : 'No items match your filters.' }}</p>
+        @if (items().length === 0 && canEdit) {
+          <button (click)="openCreate()"
+                  class="mt-3 text-xs px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition">
+            + Add First Item
+          </button>
+        }
       </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wider border-b border-gray-100">
-            <tr>
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr class="text-gray-500 uppercase text-xs tracking-wider">
               <th class="px-4 py-3 text-left">Item</th>
               <th class="px-4 py-3 text-left hidden sm:table-cell">SKU</th>
               <th class="px-4 py-3 text-left hidden md:table-cell">Category</th>
               <th class="px-4 py-3 text-left hidden md:table-cell">Warehouse</th>
-              <th class="px-4 py-3 text-left hidden md:table-cell">Command</th>
+              <th class="px-4 py-3 text-left hidden lg:table-cell">Command</th>
               <th class="px-4 py-3 text-right">Stock</th>
               <th class="px-4 py-3 text-right hidden sm:table-cell">Unit Price</th>
-              @if (canEdit) {
-                <th class="px-4 py-3 text-right">Actions</th>
-              }
+              <th class="px-4 py-3 text-right hidden sm:table-cell">Total Value</th>
+              <th class="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-50">
             @for (item of filteredItems(); track item.id) {
-              <tr class="hover:bg-gray-50 transition-colors">
+              <tr class="hover:bg-slate-50 transition-colors group">
+
+                <!-- Name -->
                 <td class="px-4 py-3">
-                  <p class="font-medium text-gray-900">{{ item.name }}</p>
-                  <p class="text-xs text-gray-400 sm:hidden font-mono">{{ item.sku }}</p>
-                  <p class="text-xs text-gray-400 md:hidden">{{ item.category ?? '' }}</p>
+                  <p class="font-semibold text-gray-900">{{ item.name }}</p>
+                  @if (item.description) {
+                    <p class="text-xs text-gray-400 mt-0.5 truncate max-w-48">{{ item.description }}</p>
+                  }
+                  <p class="text-xs text-gray-400 font-mono sm:hidden mt-0.5">{{ item.sku }}</p>
                 </td>
-                <td class="px-4 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">{{ item.sku }}</td>
-                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ item.category ?? '—' }}</td>
-                <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ item.warehouse?.name ?? '—' }}</td>
-                <td class="px-4 py-3 hidden md:table-cell text-xs">
-                  @if (item.commandId) {
-                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">{{ commandName(item.commandId) }}</span>
+
+                <!-- SKU -->
+                <td class="px-4 py-3 hidden sm:table-cell">
+                  <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{{ item.sku }}</span>
+                </td>
+
+                <!-- Category -->
+                <td class="px-4 py-3 text-xs text-gray-600 hidden md:table-cell">
+                  {{ item.category ?? '—' }}
+                </td>
+
+                <!-- Warehouse -->
+                <td class="px-4 py-3 hidden md:table-cell">
+                  @if (item.warehouse) {
+                    <span class="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">{{ item.warehouse.name }}</span>
                   } @else {
-                    <span class="text-gray-300">—</span>
+                    <span class="text-gray-300 text-xs">—</span>
                   }
                 </td>
+
+                <!-- Command -->
+                <td class="px-4 py-3 hidden lg:table-cell">
+                  @if (item.commandId) {
+                    <span class="text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                      {{ commandName(item.commandId) }}
+                    </span>
+                  } @else {
+                    <span class="text-gray-300 text-xs">—</span>
+                  }
+                </td>
+
+                <!-- Stock qty -->
                 <td class="px-4 py-3 text-right">
-                  <span [class]="item.quantity < 10 ? 'text-red-600 font-semibold' : 'text-gray-900'">
+                  <span class="text-sm font-bold"
+                        [class]="item.quantity === 0 ? 'text-red-700' : item.quantity < 10 ? 'text-amber-600' : 'text-gray-900'">
                     {{ item.quantity }}
                   </span>
-                  @if (item.quantity < 10) {
-                    <span class="ml-1 text-xs text-red-400">low</span>
+                  @if (item.quantity === 0) {
+                    <p class="text-xs text-red-500">Out of stock</p>
+                  } @else if (item.quantity < 10) {
+                    <p class="text-xs text-amber-500">Low stock</p>
                   }
                 </td>
-                <td class="px-4 py-3 text-right text-gray-700 hidden sm:table-cell">{{ item.unitPrice | currency }}</td>
-                @if (canEdit) {
-                  <td class="px-4 py-3 text-right">
-                    <div class="flex items-center justify-end gap-3">
-                      <button (click)="openEdit(item)" class="text-xs text-slate-600 hover:text-slate-900 font-medium">Edit</button>
-                      <button (click)="delete(item.id!, item.name)" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+
+                <!-- Unit Price -->
+                <td class="px-4 py-3 text-right text-gray-700 text-sm hidden sm:table-cell">
+                  {{ item.unitPrice | currency }}
+                </td>
+
+                <!-- Total Value -->
+                <td class="px-4 py-3 text-right text-gray-600 text-xs hidden sm:table-cell">
+                  {{ (item.quantity * item.unitPrice) | currency:'USD':'symbol':'1.0-0' }}
+                </td>
+
+                <!-- Actions -->
+                <td class="px-4 py-3 text-right">
+                  @if (canEdit) {
+                    <div class="flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                      <button (click)="openEdit(item)"
+                              class="text-xs px-2.5 py-1 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition">
+                        Edit
+                      </button>
+                      <button (click)="delete(item.id!, item.name)"
+                              class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition">
+                        Delete
+                      </button>
                     </div>
-                  </td>
-                }
+                  }
+                </td>
+
               </tr>
             }
           </tbody>
         </table>
       </div>
-      <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
-        {{ filteredItems().length }} of {{ items().length }} item{{ items().length !== 1 ? 's' : '' }}
+      <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+        <span class="text-xs text-gray-400">
+          {{ filteredItems().length }} of {{ items().length }} item{{ items().length !== 1 ? 's' : '' }}
+        </span>
+        @if (filteredItems().length < items().length) {
+          <span class="text-xs text-amber-600">Filters active</span>
+        }
       </div>
     }
   </div>
+
 </div>

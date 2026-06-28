@@ -61,6 +61,11 @@ export class ItemList implements OnInit {
     [...new Set(this.items().map(i => i.category).filter(Boolean) as string[])].sort()
   );
 
+  totalItems   = computed(() => this.items().length);
+  lowStockCount = computed(() => this.items().filter(i => i.quantity < 10).length);
+  totalValue   = computed(() => this.items().reduce((s, i) => s + i.quantity * i.unitPrice, 0));
+  categoryCount = computed(() => this.categories().length);
+
   filteredItems = computed(() => {
     let list = this.items();
     const term = this.searchTerm().trim().toLowerCase();
