@@ -121,10 +121,10 @@
       <div class="border-b border-gray-100 px-2 overflow-x-auto">
         <nav class="flex -mb-px gap-1">
           <button (click)="activeTab.set('profile')" [class]="tabClass('profile')">Profile</button>
-          <button (click)="activeTab.set('responsibility')" [class]="tabClass('responsibility')">
-            Responsibility
-            @if (responsibilityHistory().length) {
-              <span class="ml-1 text-xs opacity-60">({{ responsibilityHistory().length }})</span>
+          <button (click)="activeTab.set('role')" [class]="tabClass('role')">
+            Role
+            @if (roleHistory().length) {
+              <span class="ml-1 text-xs opacity-60">({{ roleHistory().length }})</span>
             }
           </button>
           <button (click)="activeTab.set('career')" [class]="tabClass('career')">Career</button>
@@ -271,90 +271,95 @@
           </div>
         }
 
-        <!-- ── RESPONSIBILITY ── -->
-        @if (activeTab() === 'responsibility') {
+        <!-- ── ROLE ── -->
+        @if (activeTab() === 'role') {
+          <!-- Current role display -->
+          <div class="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <p class="text-xs text-gray-400 mb-1">Current Role</p>
+            @if (member()!.memberRole) {
+              <span class="inline-block text-sm px-3 py-1 rounded-lg font-semibold" [ngClass]="memberRoleColors[member()!.memberRole!]">
+                {{ memberRoleLabels[member()!.memberRole!] }}
+              </span>
+            } @else {
+              <p class="text-sm font-medium text-gray-500">No role assigned</p>
+            }
+          </div>
+
           <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-gray-900">Responsibility History</h3>
+            <h3 class="font-semibold text-gray-900">Role History</h3>
             @if (canEdit) {
-              <button (click)="showResponsibilityForm.set(!showResponsibilityForm())"
-                      class="text-xs px-3 py-1.5 bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 transition">
-                {{ showResponsibilityForm() ? 'Cancel' : '+ Assign New' }}
+              <button (click)="showRoleForm.set(!showRoleForm())"
+                      class="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition">
+                {{ showRoleForm() ? 'Cancel' : '+ Assign New Role' }}
               </button>
             }
           </div>
 
-          @if (responsibilityError()) {
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ responsibilityError() }}</div>
+          @if (roleError()) {
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">{{ roleError() }}</div>
           }
 
-          @if (showResponsibilityForm()) {
-            <form [formGroup]="responsibilityForm" (ngSubmit)="submitResponsibility()"
-                  class="mb-5 grid grid-cols-2 gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+          @if (showRoleForm()) {
+            <form [formGroup]="roleForm" (ngSubmit)="submitRole()"
+                  class="mb-5 grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
               <div class="col-span-2">
-                <label class="block text-xs font-medium text-gray-700 mb-1">New Responsibility *</label>
-                <input formControlName="responsibility" type="text" placeholder="e.g. Zone Intelligence Officer"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <label class="block text-xs font-medium text-gray-700 mb-1">New Role *</label>
+                <select formControlName="memberRole"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500">
+                  <option [value]="null">— Select Role —</option>
+                  @for (r of memberRoles; track r) {
+                    <option [value]="r">{{ memberRoleLabels[r] }}</option>
+                  }
+                </select>
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By *</label>
-                <input formControlName="changedBy" type="text"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <label class="block text-xs font-medium text-gray-700 mb-1">Authorised By</label>
+                <input type="text" [value]="currentUser" readonly
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" />
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Reason</label>
                 <input formControlName="reason" type="text"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
               </div>
               <div class="col-span-2 flex justify-end">
-                <button type="submit" [disabled]="responsibilityForm.invalid || responsibilitySubmitting()"
-                        class="px-4 py-2 text-sm bg-emerald-800 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
-                  {{ responsibilitySubmitting() ? 'Saving…' : 'Confirm Assignment' }}
+                <button type="submit" [disabled]="roleForm.invalid || roleSubmitting()"
+                        class="px-4 py-2 text-sm bg-slate-800 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 transition">
+                  {{ roleSubmitting() ? 'Saving…' : 'Confirm Role Assignment' }}
                 </button>
               </div>
             </form>
           }
 
-          @if (responsibilityTimeline().length === 0) {
+          @if (roleHistory().length === 0) {
             <div class="text-center py-10">
-              <p class="text-gray-400 text-sm">No responsibility history recorded.</p>
-              @if (member()!.responsibility) {
-                <p class="text-xs text-gray-400 mt-1">Current: {{ member()!.responsibility }}</p>
-              }
+              <p class="text-gray-400 text-sm">No role history recorded.</p>
             </div>
           } @else {
-            <div class="relative">
-              <div class="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-200"></div>
-              <div class="space-y-5">
-                @for (period of responsibilityTimeline(); track period.changedAt) {
-                  <div class="relative flex gap-4">
-                    <div class="flex-shrink-0 w-9 flex justify-center pt-0.5">
-                      @if (period.isCurrent) {
-                        <div class="w-4 h-4 rounded-full bg-emerald-600 border-2 border-white shadow ring-2 ring-emerald-200"></div>
-                      } @else {
-                        <div class="w-3 h-3 rounded-full bg-gray-300 border-2 border-white shadow mt-0.5"></div>
-                      }
-                    </div>
-                    <div class="flex-1 pb-1">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                          {{ period.fromYear }} – {{ period.toYear }}
-                        </span>
-                        @if (period.isCurrent) {
-                          <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold">Current</span>
-                        }
-                      </div>
-                      <p class="font-semibold text-gray-900 mt-1">{{ period.responsibility }}</p>
-                      @if (period.changedBy || period.reason) {
-                        <p class="text-xs text-gray-400 mt-0.5">
-                          @if (period.changedBy) { Auth: {{ period.changedBy }} }
-                          @if (period.changedBy && period.reason) { &nbsp;·&nbsp; }
-                          @if (period.reason) { {{ period.reason }} }
-                        </p>
-                      }
-                    </div>
+            <div class="space-y-2">
+              @for (entry of roleHistory(); track entry.id) {
+                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-xs border border-slate-100">
+                  <div class="flex-1 flex items-center gap-2 flex-wrap">
+                    @if (entry.previousRole) {
+                      <span class="px-2 py-1 rounded-lg font-medium" [ngClass]="memberRoleColors[entry.previousRole]">
+                        {{ memberRoleLabels[entry.previousRole] }}
+                      </span>
+                      <span class="text-slate-400 font-bold">→</span>
+                    } @else {
+                      <span class="px-2 py-1 rounded-lg bg-gray-200 text-gray-500 font-medium">None</span>
+                      <span class="text-slate-400 font-bold">→</span>
+                    }
+                    <span class="px-2 py-1 rounded-lg font-medium" [ngClass]="memberRoleColors[entry.newRole]">
+                      {{ memberRoleLabels[entry.newRole] }}
+                    </span>
+                    @if (entry.reason) { <span class="text-gray-500">· {{ entry.reason }}</span> }
                   </div>
-                }
-              </div>
+                  <div class="text-right text-gray-400 whitespace-nowrap flex-shrink-0">
+                    <div>{{ formatDate(entry.changedAt) }}</div>
+                    @if (entry.changedBy) { <div class="text-gray-300">{{ entry.changedBy }}</div> }
+                  </div>
+                </div>
+              }
             </div>
           }
         }

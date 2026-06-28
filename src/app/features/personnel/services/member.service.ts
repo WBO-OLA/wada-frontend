@@ -10,7 +10,8 @@ import {
   MemberRankUpdateRequest, MemberStatusUpdateRequest,
   MemberTransferRequest, TransferHistoryEntry,
   RankHistoryEntry, StatusHistoryEntry,
-  MemberResponsibilityUpdateRequest, ResponsibilityHistoryEntry
+  MemberResponsibilityUpdateRequest, ResponsibilityHistoryEntry,
+  MemberRoleUpdateRequest, MemberRoleHistoryEntry
 } from '../../../core/models/member.model';
 
 @Injectable({ providedIn: 'root' })
@@ -99,6 +100,14 @@ export class MemberService {
 
   getResponsibilityHistory(id: number): Observable<ResponsibilityHistoryEntry[]> {
     return this.api.get<ApiResponse<ResponsibilityHistoryEntry[]>>(`${this.path}/${id}/responsibility-history`).pipe(map(r => r.data));
+  }
+
+  updateMemberRole(id: number, request: MemberRoleUpdateRequest): Observable<Member> {
+    return this.api.patch<ApiResponse<Member>>(`${this.path}/${id}/member-role`, request).pipe(map(r => r.data));
+  }
+
+  getRoleHistory(id: number): Observable<MemberRoleHistoryEntry[]> {
+    return this.api.get<ApiResponse<MemberRoleHistoryEntry[]>>(`${this.path}/${id}/role-history`).pipe(map(r => r.data));
   }
 
   uploadPhoto(id: number, file: File): Observable<Member> {

@@ -7,10 +7,11 @@ import { DocumentService } from '../../services/document.service';
 import { CommandService } from '../../services/command.service';
 import { AssetAssignmentService } from '../../../inventory/services/asset-assignment.service';
 import {
-  Member, STATUS_LABELS, RANK_LABELS, MemberStatus,
+  Member, STATUS_LABELS, RANK_LABELS, MemberStatus, MemberRole,
   StatusHistoryEntry, RankHistoryEntry, TransferHistoryEntry, MedicalRecord,
   MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS,
-  ResponsibilityHistoryEntry, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS
+  ResponsibilityHistoryEntry, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS,
+  MemberRoleHistoryEntry
 } from '../../../../core/models/member.model';
 import { Command } from '../../../../core/models/command.model';
 import { MemberDocument } from '../../../../core/models/document.model';
@@ -37,6 +38,10 @@ export class MemberDetail implements OnInit {
   responsibilityForm = this.fb.group({
     responsibility: ['', Validators.required],
     changedBy: ['', Validators.required],
+    reason: [''],
+  });
+  roleForm = this.fb.group({
+    memberRole: [null as MemberRole | null, Validators.required],
     reason: [''],
   });
   transferForm = this.fb.group({
@@ -93,6 +98,11 @@ export class MemberDetail implements OnInit {
   responsibilitySubmitting = signal(false);
   responsibilityError = signal('');
 
+  roleHistory = signal<MemberRoleHistoryEntry[]>([]);
+  showRoleForm = signal(false);
+  roleSubmitting = signal(false);
+  roleError = signal('');
+
   photoUploading = signal(false);
   photoError = signal('');
 
@@ -125,6 +135,7 @@ export class MemberDetail implements OnInit {
   readonly activityTypeLabels = ACTIVITY_TYPE_LABELS;
   readonly activityTypeColors = ACTIVITY_TYPE_COLORS;
   readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'TRAINING', 'INJURY', 'MISSION', 'MISSION_SUCCESS', 'MISSION_FAILED', 'AWARD', 'RETIREMENT'];
+  readonly memberRoles: MemberRole[] = ['COMMANDER', 'DEPUTY_COMMANDER', 'TAKIYAA', 'SAGILII', 'ABBAA_BUTTAA', 'INTELLIGENCE_OFFICER', 'LOGISTICS_OFFICER', 'FINANCE_OFFICER', 'MEDICAL_OFFICER', 'COMMUNICATIONS_OFFICER', 'TRAINING_OFFICER', 'FIELD_OFFICER', 'SQUAD_LEADER', 'MEMBER'];
   readonly today = todayIso();
 
   readonly statusColors: Record<MemberStatus, string> = {
@@ -166,6 +177,7 @@ export class MemberDetail implements OnInit {
         this.loadRankHistory(id);
         this.loadTransferHistory(id);
         this.loadResponsibilityHistory(id);
+        this.loadRoleHistory(id);
         this.loadAssignedAssets(id);
         if (this.canViewMedical) this.loadMedicalRecords(id);
       },
@@ -223,6 +235,37 @@ export class MemberDetail implements OnInit {
     this.memberService.getResponsibilityHistory(memberId).subscribe({
       next: h => this.responsibilityHistory.set(h),
       error: () => {},
+    });
+  }
+
+  loadRoleHistory(memberId: number) {
+    this.memberService.getRoleHistory(memberId).subscribe({
+      next: h => this.roleHistory.set(h),
+      error: () => {},
+    });
+  }
+
+  submitRole() {
+    if (this.roleForm.invalid || !this.member()?.id) return;
+    this.roleSubmitting.set(true);
+    this.roleError.set('');
+    const { memberRole, reason } = this.roleForm.value;
+    this.memberService.updateMemberRole(this.member()!.id!, {
+      memberRole: memberRole!,
+      changedBy: this.currentUser,
+      reason: reason ?? undefined,
+    }).subscribe({
+      next: updated => {
+        this.member.set(updated);
+        this.roleSubmitting.set(false);
+        this.showRoleForm.set(false);
+        this.roleForm.reset();
+        this.loadRoleHistory(this.member()!.id!);
+      },
+      error: (err: any) => {
+        this.roleError.set(err?.error?.message ?? 'Failed to update role.');
+        this.roleSubmitting.set(false);
+      },
     });
   }
 

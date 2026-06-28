@@ -127,6 +127,21 @@ export interface ResponsibilityHistoryEntry {
   reason?: string;
 }
 
+export interface MemberRoleUpdateRequest {
+  memberRole: MemberRole;
+  changedBy: string;
+  reason?: string;
+}
+
+export interface MemberRoleHistoryEntry {
+  id: number;
+  previousRole?: MemberRole | null;
+  newRole: MemberRole;
+  changedAt: string;
+  changedBy?: string;
+  reason?: string;
+}
+
 export const STATUS_LABELS: Record<MemberStatus, string> = {
   ACTIVE: 'Active',
   INJURED: 'Injured',
