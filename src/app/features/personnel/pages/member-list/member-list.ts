@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../services/member.service';
 import { CommandService } from '../../services/command.service';
@@ -11,7 +11,7 @@ import { buildCommandTree } from '../../../../core/utils/command-tree';
 
 @Component({
   selector: 'app-member-list',
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './member-list.html',
   styleUrl: './member-list.css',
 })
@@ -62,10 +62,20 @@ export class MemberList implements OnInit {
     PASSED_AWAY: 'bg-red-500',
   };
 
+  get isGlobal(): boolean { return this.auth.isGlobal(); }
+
+  scopeLabel = computed(() => {
+    const id = this.auth.getCommandId();
+    if (!id) return null;
+    const cmd = this.commands().find(c => c.id === id);
+    return cmd?.name ?? null;
+  });
+
   get totalCount()   { return this.members().length; }
   get activeCount()  { return this.members().filter(m => m.status === 'ACTIVE').length; }
   get injuredCount() { return this.members().filter(m => m.status === 'INJURED').length; }
-  get retiredCount() { return this.members().filter(m => m.status === 'RETIRED' || m.status === 'PASSED_AWAY').length; }
+  get retiredCount() { return this.members().filter(m => m.status === 'RETIRED').length; }
+  get passedCount()  { return this.members().filter(m => m.status === 'PASSED_AWAY').length; }
 
   statusFilterTyped()  { return this.statusFilter() as MemberStatus; }
   rankFilterTyped()    { return this.rankFilter() as MilitaryRank; }

@@ -1,53 +1,89 @@
 <div>
 
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Personnel</h1>
-      <p class="text-sm text-gray-500 mt-1">Manage all registered members</p>
+      <h1 class="text-2xl font-bold text-gray-900">Personnel Management</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Registered members across all zones and brigades
+        @if (!isGlobal && scopeLabel()) {
+          · <span class="text-blue-600 font-medium">{{ scopeLabel() }}</span>
+        }
+      </p>
     </div>
-    @if (canEdit) {
-      <a routerLink="new"
-         class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">
-        + Register Member
-      </a>
-    }
+    <div class="flex items-center gap-2 flex-shrink-0">
+      @if (!isGlobal && scopeLabel()) {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+          {{ scopeLabel() }}
+        </span>
+      }
+      @if (canEdit) {
+        <a routerLink="new"
+           class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors">
+          + Register Member
+        </a>
+      }
+    </div>
   </div>
 
   <!-- Stats cards -->
-  @if (!loading() && members().length > 0) {
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-        <p class="text-xs text-gray-400 uppercase tracking-wider">Total</p>
-        <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ totalCount }}</p>
-      </div>
-      <div class="bg-white rounded-xl border border-green-100 shadow-sm px-4 py-3">
-        <p class="text-xs text-green-500 uppercase tracking-wider">Active</p>
-        <p class="text-2xl font-bold text-green-700 mt-0.5">{{ activeCount }}</p>
-      </div>
-      <div class="bg-white rounded-xl border border-yellow-100 shadow-sm px-4 py-3">
-        <p class="text-xs text-yellow-500 uppercase tracking-wider">Injured</p>
-        <p class="text-2xl font-bold text-yellow-700 mt-0.5">{{ injuredCount }}</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-        <p class="text-xs text-gray-400 uppercase tracking-wider">Retired / Passed</p>
-        <p class="text-2xl font-bold text-gray-600 mt-0.5">{{ retiredCount }}</p>
-      </div>
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-gray-400 uppercase tracking-wider">Total</p>
+      <p class="text-2xl font-bold text-gray-900 mt-0.5">
+        {{ loading() ? '—' : totalCount }}
+      </p>
     </div>
-  }
+    <div class="bg-white rounded-xl border border-green-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-green-500 uppercase tracking-wider">Active</p>
+      <p class="text-2xl font-bold text-green-700 mt-0.5">{{ loading() ? '—' : activeCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-yellow-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-yellow-500 uppercase tracking-wider">Injured</p>
+      <p class="text-2xl font-bold text-yellow-700 mt-0.5">{{ loading() ? '—' : injuredCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-gray-400 uppercase tracking-wider">Retired</p>
+      <p class="text-2xl font-bold text-gray-600 mt-0.5">{{ loading() ? '—' : retiredCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-red-100 shadow-sm px-4 py-3">
+      <p class="text-xs text-red-400 uppercase tracking-wider">Passed Away</p>
+      <p class="text-2xl font-bold text-red-600 mt-0.5">{{ loading() ? '—' : passedCount }}</p>
+    </div>
+  </div>
 
-  <!-- Filters -->
+  <!-- Tab nav -->
+  <div class="flex gap-1 mb-4 border-b border-gray-200">
+    <a routerLink="/personnel" [routerLinkActiveOptions]="{ exact: true }"
+       class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+       routerLinkActive="border-slate-900 text-slate-900"
+       [class]="'border-transparent text-gray-500 hover:text-gray-700'">
+      Members
+    </a>
+    <a routerLink="/personnel/commands"
+       class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+       routerLinkActive="border-slate-900 text-slate-900"
+       [class]="'border-transparent text-gray-500 hover:text-gray-700'">
+      Command Hierarchy
+    </a>
+  </div>
+
+  <!-- Filter bar -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
       <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
-               type="text" placeholder="Search name or ID..."
-               class="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+               type="text" placeholder="Search name or ID…"
+               class="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
       </div>
 
       <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
-              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
         <option value="">All statuses</option>
         @for (s of statusOptions; track s) {
           <option [value]="s">{{ statusLabels[s] }}</option>
@@ -55,56 +91,63 @@
       </select>
 
       <select [ngModel]="rankFilter()" (ngModelChange)="rankFilter.set($event)"
-              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
         <option value="">All ranks</option>
         @for (r of rankOptions; track r) {
           <option [value]="r">{{ rankLabels[r] }}</option>
         }
       </select>
 
-      <select [ngModel]="commandFilter()" (ngModelChange)="commandFilter.set($event)"
-              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
-        <option value="">All commands</option>
-        @for (c of commands(); track c.id) {
-          <option [value]="c.id">{{ '— '.repeat(c.depth) }}{{ c.name }}</option>
-        }
-      </select>
-
-      <select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)"
-              class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
-        <option value="">All roles</option>
-        @for (r of roleOptions; track r) {
-          <option [value]="r">{{ memberRoleLabels[r] }}</option>
-        }
-      </select>
+      @if (isGlobal) {
+        <select [ngModel]="commandFilter()" (ngModelChange)="commandFilter.set($event)"
+                class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+          <option value="">All commands</option>
+          @for (c of commands(); track c.id) {
+            <option [value]="c.id">{{ '— '.repeat(c.depth) }}{{ c.name }}</option>
+          }
+        </select>
+      } @else {
+        <select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)"
+                class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+          <option value="">All roles</option>
+          @for (r of roleOptions; track r) {
+            <option [value]="r">{{ memberRoleLabels[r] }}</option>
+          }
+        </select>
+      }
     </div>
 
+    <!-- Active filter chips -->
     @if (searchTerm() || statusFilter() || rankFilter() || commandFilter() || roleFilter()) {
-      <div class="mt-3 flex items-center gap-3 flex-wrap">
-        <span class="text-xs font-medium text-gray-700">
+      <div class="mt-3 flex items-center gap-2 flex-wrap">
+        <span class="text-xs font-medium text-gray-600">
           {{ filteredMembers().length }} result{{ filteredMembers().length !== 1 ? 's' : '' }}
         </span>
         @if (searchTerm()) {
-          <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-            "{{ searchTerm() }}" <button (click)="searchTerm.set('')" class="ml-1 text-slate-400 hover:text-slate-700">✕</button>
+          <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+            "{{ searchTerm() }}"
+            <button (click)="searchTerm.set('')" class="text-slate-400 hover:text-slate-700">✕</button>
           </span>
         }
         @if (statusFilter()) {
-          <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-            {{ statusLabels[statusFilterTyped()] }} <button (click)="statusFilter.set('')" class="ml-1 text-slate-400 hover:text-slate-700">✕</button>
+          <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+            {{ statusLabels[statusFilterTyped()] }}
+            <button (click)="statusFilter.set('')" class="text-slate-400 hover:text-slate-700">✕</button>
           </span>
         }
         @if (rankFilter()) {
-          <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-            {{ rankLabels[rankFilterTyped()] }} <button (click)="rankFilter.set('')" class="ml-1 text-slate-400 hover:text-slate-700">✕</button>
+          <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+            {{ rankLabels[rankFilterTyped()] }}
+            <button (click)="rankFilter.set('')" class="text-slate-400 hover:text-slate-700">✕</button>
           </span>
         }
         @if (roleFilter()) {
-          <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-            {{ memberRoleLabels[roleFilterTyped()] }} <button (click)="roleFilter.set('')" class="ml-1 text-slate-400 hover:text-slate-700">✕</button>
+          <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
+            {{ memberRoleLabels[roleFilterTyped()] }}
+            <button (click)="roleFilter.set('')" class="text-slate-400 hover:text-slate-700">✕</button>
           </span>
         }
-        <button (click)="clearFilters()" class="text-xs text-red-400 hover:text-red-600 underline ml-auto">Clear all</button>
+        <button (click)="clearFilters()" class="ml-auto text-xs text-red-400 hover:text-red-600 underline">Clear all</button>
       </div>
     }
   </div>
@@ -112,10 +155,12 @@
   <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     @if (loading()) {
-      <div class="p-12 text-center text-gray-400 text-sm">Loading members...</div>
+      <div class="p-12 text-center text-gray-400 text-sm">Loading members…</div>
     } @else if (filteredMembers().length === 0) {
       <div class="p-12 text-center">
-        <p class="text-gray-400 text-sm">{{ members().length === 0 ? 'No members registered yet.' : 'No members match your filters.' }}</p>
+        <p class="text-gray-400 text-sm">
+          {{ members().length === 0 ? 'No members registered yet.' : 'No members match your filters.' }}
+        </p>
         @if (members().length === 0 && canEdit) {
           <a routerLink="new" class="mt-3 inline-block text-xs px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-700 transition">
             + Register First Member
@@ -141,7 +186,7 @@
             @for (m of filteredMembers(); track m.id) {
               <tr class="hover:bg-slate-50 transition-colors group">
 
-                <!-- Member name + avatar -->
+                <!-- Member -->
                 <td class="px-4 py-3">
                   <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
@@ -158,47 +203,60 @@
                   </div>
                 </td>
 
+                <!-- Military ID -->
                 <td class="px-4 py-3 hidden sm:table-cell">
                   <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{{ m.militaryId }}</span>
                 </td>
 
+                <!-- Rank -->
                 <td class="px-4 py-3 text-xs text-gray-600 hidden md:table-cell">{{ rankLabels[m.rank] }}</td>
 
+                <!-- Command -->
                 <td class="px-4 py-3 hidden md:table-cell">
                   @if (m.command) {
-                    <span class="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">{{ m.command.name }}</span>
+                    <span class="text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">{{ m.command.name }}</span>
                   } @else {
-                    <span class="text-gray-400 text-xs">—</span>
+                    <span class="text-gray-300 text-xs">—</span>
                   }
                 </td>
 
+                <!-- Role -->
                 <td class="px-4 py-3 hidden lg:table-cell">
                   @if (m.memberRole) {
                     <span class="px-2 py-0.5 rounded text-xs font-medium" [ngClass]="memberRoleColors[m.memberRole]">
                       {{ memberRoleLabels[m.memberRole] }}
                     </span>
                   } @else {
-                    <span class="text-gray-400 text-xs">—</span>
+                    <span class="text-gray-300 text-xs">—</span>
                   }
                 </td>
 
+                <!-- Status -->
                 <td class="px-4 py-3">
                   <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="statusColors[m.status]">
                     {{ statusLabels[m.status] }}
                   </span>
                 </td>
 
+                <!-- Joined -->
                 <td class="px-4 py-3 text-xs text-gray-400 hidden lg:table-cell">{{ m.joinDate ?? '—' }}</td>
 
+                <!-- Actions -->
                 <td class="px-4 py-3 text-right">
-                  <div class="flex items-center justify-end gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                  <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <a [routerLink]="[m.id]"
-                       class="text-xs px-2.5 py-1 text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition">View</a>
+                       class="text-xs px-2.5 py-1 text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition">
+                      View
+                    </a>
                     @if (canEdit) {
                       <a [routerLink]="[m.id, 'edit']"
-                         class="text-xs px-2.5 py-1 text-gray-600 border border-gray-200 rounded hover:bg-gray-50 transition">Edit</a>
+                         class="text-xs px-2.5 py-1 text-gray-600 border border-gray-200 rounded hover:bg-gray-50 transition">
+                        Edit
+                      </a>
                       <button (click)="delete(m.id!)"
-                              class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition">Delete</button>
+                              class="text-xs px-2.5 py-1 text-red-500 border border-red-200 rounded hover:bg-red-50 transition">
+                        Delete
+                      </button>
                     }
                   </div>
                 </td>
@@ -209,13 +267,13 @@
         </table>
       </div>
 
-      <!-- Footer -->
+      <!-- Table footer -->
       <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
         <span class="text-xs text-gray-400">
           Showing {{ filteredMembers().length }} of {{ members().length }} member{{ members().length !== 1 ? 's' : '' }}
         </span>
         @if (filteredMembers().length < members().length) {
-          <span class="text-xs text-amber-600">Filters active</span>
+          <span class="text-xs text-amber-600 font-medium">Filters active</span>
         }
       </div>
     }
