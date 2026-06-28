@@ -1,46 +1,46 @@
-<div>
+<div class="max-w-4xl">
 
-  <!-- Page Header -->
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <!-- Header -->
+  <div class="flex items-start justify-between gap-3 mb-5 flex-wrap">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Finance Management</h1>
       <p class="text-sm text-gray-500 mt-1">Budgets, expenses and income tracking</p>
     </div>
     <button (click)="showForm.set(!showForm())"
-            class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+            class="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition flex-shrink-0">
       {{ showForm() ? '✕ Cancel' : '+ Submit Expense' }}
     </button>
   </div>
 
-  <!-- Tab Nav -->
-  <div class="flex gap-1 mb-6 border-b border-gray-200">
-    <a routerLink="/finance/budget" routerLinkActive="border-slate-900 text-slate-900 bg-white"
-       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px rounded-t-lg">
+  <!-- Tab nav -->
+  <div class="flex gap-1 mb-5 border-b border-gray-200">
+    <a routerLink="/finance/budget" routerLinkActive="border-slate-900 !text-slate-900"
+       class="px-4 py-2.5 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-800 transition -mb-px">
       Budgets
     </a>
-    <a routerLink="/finance/expenses" routerLinkActive="border-slate-900 text-slate-900 bg-white"
-       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px rounded-t-lg">
+    <a routerLink="/finance/expenses" routerLinkActive="border-slate-900 !text-slate-900"
+       class="px-4 py-2.5 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-800 transition -mb-px">
       Expenses
     </a>
-    <a routerLink="/finance/income" routerLinkActive="border-slate-900 text-slate-900 bg-white"
-       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px rounded-t-lg">
+    <a routerLink="/finance/income" routerLinkActive="border-slate-900 !text-slate-900"
+       class="px-4 py-2.5 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-800 transition -mb-px">
       Income
     </a>
-    <a routerLink="/finance/ledger" routerLinkActive="border-slate-900 text-slate-900 bg-white"
-       class="px-4 pb-3 pt-2 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors -mb-px rounded-t-lg">
+    <a routerLink="/finance/ledger" routerLinkActive="border-slate-900 !text-slate-900"
+       class="px-4 py-2.5 border-b-2 border-transparent text-gray-500 text-sm font-medium hover:text-gray-800 transition -mb-px">
       Ledger
     </a>
   </div>
 
   <!-- Alerts -->
   @if (error()) {
-    <div class="mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+    <div class="mb-4 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
       <span>⚠ {{ error() }}</span>
       <button (click)="error.set('')" class="ml-auto text-red-400 hover:text-red-700">✕</button>
     </div>
   }
   @if (success()) {
-    <div class="mb-4 flex items-start gap-2 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">
+    <div class="mb-4 flex items-start gap-2 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl">
       <span>✓ {{ success() }}</span>
       <button (click)="success.set('')" class="ml-auto text-green-400 hover:text-green-700">✕</button>
     </div>
@@ -48,31 +48,31 @@
 
   <!-- Submit expense form -->
   @if (showForm()) {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-      <h2 class="text-sm font-semibold text-gray-900 mb-4">Submit Expense</h2>
-      <p class="text-xs text-gray-500 mb-4">
-        Submitting as <span class="font-semibold text-gray-700 px-1.5 py-0.5 bg-gray-100 rounded">{{ currentUser }}</span>
-      </p>
-      <form [formGroup]="form" (ngSubmit)="submitExpense()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Submit Expense</p>
+        <span class="text-xs text-gray-400">as <span class="font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">{{ currentUser }}</span></span>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="submitExpense()" class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="sm:col-span-2">
-          <label class="block text-xs font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Title <span class="text-red-400">*</span></label>
           <input formControlName="title" type="text" placeholder="e.g. Vehicle Fuel — October"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Amount <span class="text-red-400">*</span></label>
           <input formControlName="amount" type="number" min="0.01" step="0.01" placeholder="0.00"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Category</label>
           <input formControlName="category" type="text" placeholder="e.g. Equipment, Fuel"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Budget (optional)</label>
           <select formControlName="budgetId"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
             <option [ngValue]="null">— No budget —</option>
             @for (b of budgets(); track b.id) {
               @if (b.status === 'ACTIVE') {
@@ -86,7 +86,7 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Command (Zone / Brigade)</label>
           <select formControlName="commandId"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
             <option [ngValue]="null">— Chief Command (Global) —</option>
             @for (c of commands(); track c.id) {
               <option [ngValue]="c.id">{{ c.name }}{{ c.description ? ' (' + c.description + ')' : '' }}</option>
@@ -96,45 +96,47 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Reference</label>
           <input formControlName="reference" type="text"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
         </div>
         <div class="sm:col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
           <input formControlName="notes" type="text"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
         </div>
         <div class="sm:col-span-2 flex justify-end gap-3 pt-2 border-t border-gray-100">
           <button type="button" (click)="showForm.set(false)"
-                  class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
             Cancel
           </button>
           <button type="submit" [disabled]="form.invalid || saving()"
-                  class="px-5 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors font-medium">
-            {{ saving() ? 'Submitting...' : 'Submit Expense' }}
+                  class="px-5 py-2 text-sm bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-50 transition font-semibold">
+            {{ saving() ? 'Submitting…' : 'Submit Expense' }}
           </button>
         </div>
       </form>
     </div>
   }
 
-  <!-- Filters row -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+  <!-- Filter bar -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" [ngModelOptions]="{standalone: true}"
-               type="text" placeholder="Search title, category, submitter..."
-               class="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+               type="text" placeholder="Search title, category, submitter…"
+               class="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
       </div>
       <div class="flex gap-2 flex-wrap">
         <button (click)="applyFilter('')"
-                class="px-3 py-1.5 text-xs rounded-lg transition-colors"
+                class="px-3 py-1.5 text-xs rounded-xl transition font-medium"
                 [class]="filterStatus() === '' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'">
           All
         </button>
         @for (s of statuses; track s) {
           <button (click)="applyFilter(s)"
-                  class="px-3 py-1.5 text-xs rounded-lg transition-colors"
+                  class="px-3 py-1.5 text-xs rounded-xl transition font-medium"
                   [class]="filterStatus() === s ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'">
             {{ statusLabels[s] }}
           </button>
@@ -144,13 +146,13 @@
     @if (commands().length > 0) {
       <div class="mt-3 flex flex-wrap gap-2 pt-3 border-t border-gray-100">
         <button (click)="setCommandFilter(null)"
-                class="px-3 py-1 text-xs rounded-lg transition-colors"
+                class="px-3 py-1 text-xs rounded-xl transition font-medium"
                 [class]="commandFilter() === null ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'">
           All Commands
         </button>
         @for (c of commands(); track c.id) {
           <button (click)="setCommandFilter(c.id!)"
-                  class="px-3 py-1 text-xs rounded-lg transition-colors"
+                  class="px-3 py-1 text-xs rounded-xl transition font-medium"
                   [class]="commandFilter() === c.id ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-gray-400'">
             {{ c.name }}
           </button>
@@ -161,13 +163,16 @@
 
   <!-- Expenses table -->
   @if (loading()) {
-    <div class="text-center py-12 text-gray-400 text-sm">Loading expenses...</div>
+    <div class="py-20 flex flex-col items-center gap-3 text-gray-400">
+      <div class="w-7 h-7 border-2 border-gray-200 border-t-slate-500 rounded-full animate-spin"></div>
+      <p class="text-sm">Loading expenses…</p>
+    </div>
   } @else if (filteredExpenses().length === 0) {
-    <div class="bg-white rounded-xl p-12 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
+    <div class="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
       {{ expenses().length === 0 ? 'No expenses found.' : 'No expenses match the current filters.' }}
     </div>
   } @else {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50 border-b border-gray-100">
@@ -196,7 +201,7 @@
                 </td>
                 <td class="px-4 py-3 hidden md:table-cell">
                   @if (exp.commandId) {
-                    <span class="text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                    <span class="text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-lg">
                       {{ commandName(exp.commandId) }}
                     </span>
                   } @else {
@@ -205,7 +210,7 @@
                 </td>
                 <td class="px-4 py-3 hidden lg:table-cell">
                   @if (exp.budget) {
-                    <span class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
+                    <span class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">
                       {{ exp.budget.name }}
                     </span>
                   } @else {
@@ -215,7 +220,7 @@
                 <td class="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{{ exp.category || '—' }}</td>
                 <td class="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{{ exp.submittedBy }}</td>
                 <td class="px-4 py-3">
-                  <span class="px-2 py-0.5 text-xs rounded-full font-medium {{ statusClass(exp.status) }}">
+                  <span class="px-2 py-0.5 text-xs rounded-full font-semibold {{ statusClass(exp.status) }}">
                     {{ statusLabels[exp.status ?? 'PENDING'] }}
                   </span>
                   @if (exp.approvedBy) {
@@ -227,17 +232,17 @@
                 </td>
                 <td class="px-4 py-3 text-right">
                   @if (exp.status === 'PENDING' && canApprove) {
-                    <div class="flex gap-1.5 justify-end opacity-60 group-hover:opacity-100 transition-opacity">
+                    <div class="flex gap-1.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                       <button (click)="startAction(exp.id!, 'approve')"
-                              class="text-xs px-2.5 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+                              class="text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
                         Approve
                       </button>
                       <button (click)="startAction(exp.id!, 'reject')"
-                              class="text-xs px-2.5 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                              class="text-xs px-2.5 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
                         Reject
                       </button>
                       <button (click)="cancelExpense(exp.id!)"
-                              class="text-xs px-2.5 py-1 text-gray-500 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                              class="text-xs px-2.5 py-1 text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                         Cancel
                       </button>
                     </div>
@@ -250,10 +255,10 @@
               <!-- Inline approval row -->
               @if (actionId() === exp.id) {
                 <tr class="bg-amber-50 border-t border-amber-100">
-                  <td colspan="8" class="px-4 py-4">
+                  <td colspan="8" class="px-5 py-4">
                     @if (actionType() === 'approve' && exp.budget && budgetForExpense(exp.budget.id); as bgt) {
-                      <div class="mb-3 p-3 rounded-lg border text-xs flex flex-wrap gap-4"
-                           [class]="exp.amount > budgetRemaining(bgt.id) ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'">
+                      <div class="mb-3 p-3 rounded-xl border text-xs flex flex-wrap gap-4"
+                           [class]="exp.amount > budgetRemaining(bgt.id) ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'">
                         <span>Budget: <strong>{{ bgt.name }}</strong></span>
                         <span>Available: <strong>{{ budgetRemaining(bgt.id) | currency }}</strong></span>
                         <span>This expense: <strong>{{ exp.amount | currency }}</strong></span>
@@ -272,16 +277,16 @@
                       @if (actionType() === 'reject') {
                         <form [formGroup]="rejectionForm" class="flex-1 min-w-48">
                           <input formControlName="rejectionReason" type="text" placeholder="Reason (optional)"
-                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+                                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
                         </form>
                       }
                       <button type="button" (click)="actionId.set(null)"
-                              class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                              class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50">
                         Cancel
                       </button>
                       <button type="button" (click)="submitAction()" [disabled]="saving()"
-                              class="px-4 py-1.5 text-sm text-white rounded-lg disabled:opacity-50 transition-colors"
-                              [class]="actionType() === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'">
+                              class="px-4 py-1.5 text-sm text-white rounded-xl disabled:opacity-50 transition"
+                              [class]="actionType() === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'">
                         Confirm {{ actionType() === 'approve' ? 'Approval' : 'Rejection' }}
                       </button>
                     </div>
