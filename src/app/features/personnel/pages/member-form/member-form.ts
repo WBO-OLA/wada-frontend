@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { MemberService } from '../../services/member.service';
 import { CommandService } from '../../services/command.service';
-import { MilitaryRank, MemberStatus, STATUS_LABELS, RANK_LABELS } from '../../../../core/models/member.model';
+import { MilitaryRank, MemberRole, MemberStatus, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS } from '../../../../core/models/member.model';
 import { CommandWithDepth } from '../../../../core/models/command.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
 
@@ -26,6 +26,7 @@ export class MemberForm implements OnInit {
     dateOfBirth: [''],
     joinDate: [''],
     rank: ['RECRUIT' as MilitaryRank, Validators.required],
+    memberRole: [null as MemberRole | null, Validators.required],
     commandId: [null as number | null, Validators.required],
     status: ['ACTIVE' as MemberStatus, Validators.required],
     notes: [''],
@@ -44,8 +45,15 @@ export class MemberForm implements OnInit {
     'MAJOR_GENERAL', 'LIEUTENANT_GENERAL', 'GENERAL',
   ];
   readonly statuses: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
+  readonly memberRoles: MemberRole[] = [
+    'COMMANDER', 'DEPUTY_COMMANDER', 'TAKIYAA', 'SAGILII', 'ABBAA_BUTTAA',
+    'INTELLIGENCE_OFFICER', 'LOGISTICS_OFFICER', 'FINANCE_OFFICER',
+    'MEDICAL_OFFICER', 'COMMUNICATIONS_OFFICER', 'TRAINING_OFFICER',
+    'FIELD_OFFICER', 'SQUAD_LEADER', 'MEMBER',
+  ];
   readonly rankLabels = RANK_LABELS;
   readonly statusLabels = STATUS_LABELS;
+  readonly memberRoleLabels = MEMBER_ROLE_LABELS;
 
   private memberService = inject(MemberService);
   private commandService = inject(CommandService);
