@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../services/member.service';
 import { CommandService } from '../../services/command.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS, MilitaryRank } from '../../../../core/models/member.model';
+import { Member, MemberStatus, MemberRole, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS, MilitaryRank } from '../../../../core/models/member.model';
 import { CommandWithDepth } from '../../../../core/models/command.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
 
@@ -28,8 +28,15 @@ export class MemberList implements OnInit {
   statusFilter = signal('');
   rankFilter = signal('');
   commandFilter = signal('');
+  roleFilter = signal('');
 
   readonly statusOptions: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
+  readonly roleOptions: MemberRole[] = [
+    'COMMANDER', 'DEPUTY_COMMANDER', 'TAKIYAA', 'SAGILII', 'ABBAA_BUTTAA',
+    'INTELLIGENCE_OFFICER', 'LOGISTICS_OFFICER', 'FINANCE_OFFICER',
+    'MEDICAL_OFFICER', 'COMMUNICATIONS_OFFICER', 'TRAINING_OFFICER',
+    'FIELD_OFFICER', 'SQUAD_LEADER', 'MEMBER',
+  ];
   readonly rankOptions: MilitaryRank[] = [
     'RECRUIT', 'PRIVATE', 'CORPORAL', 'SERGEANT', 'STAFF_SERGEANT',
     'WARRANT_OFFICER', 'SECOND_LIEUTENANT', 'FIRST_LIEUTENANT', 'CAPTAIN',
@@ -63,6 +70,7 @@ export class MemberList implements OnInit {
     if (this.statusFilter())  list = list.filter(m => m.status === this.statusFilter());
     if (this.rankFilter())    list = list.filter(m => m.rank === this.rankFilter());
     if (this.commandFilter()) list = list.filter(m => String(m.command?.id) === this.commandFilter());
+    if (this.roleFilter())    list = list.filter(m => m.memberRole === this.roleFilter());
     return list;
   });
 
@@ -84,6 +92,7 @@ export class MemberList implements OnInit {
     this.statusFilter.set('');
     this.rankFilter.set('');
     this.commandFilter.set('');
+    this.roleFilter.set('');
   }
 
   delete(id: number) {
