@@ -83,7 +83,7 @@
       <div class="bg-white rounded-xl border border-emerald-100 shadow-sm px-4 py-4">
         <p class="text-xs text-emerald-500 uppercase tracking-wider">Total Income</p>
         <p class="text-3xl font-bold text-emerald-700 mt-1">{{ formatCurrency(totalIncome()) }}</p>
-        <a routerLink="/finance/incomes" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
+        <a routerLink="/finance/income" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
       </div>
 
       <div class="bg-white rounded-xl border border-red-100 shadow-sm px-4 py-4">
@@ -105,7 +105,7 @@
       <div class="bg-white rounded-xl border border-blue-100 shadow-sm px-4 py-4">
         <p class="text-xs text-blue-400 uppercase tracking-wider">Active Budgets</p>
         <p class="text-3xl font-bold text-blue-700 mt-1">{{ activeBudgets() }}</p>
-        <a routerLink="/finance/budgets" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
+        <a routerLink="/finance/budget" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
       </div>
 
     </div>
@@ -173,7 +173,7 @@
         <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Inventory</span>
       </a>
 
-      <a routerLink="/finance/budgets"
+      <a routerLink="/finance/budget"
          class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
         <span class="text-2xl">💰</span>
         <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Budgets</span>
@@ -185,7 +185,7 @@
         <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Expenses</span>
       </a>
 
-      <a routerLink="/finance/incomes"
+      <a routerLink="/finance/income"
          class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
         <span class="text-2xl">📈</span>
         <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Income</span>
