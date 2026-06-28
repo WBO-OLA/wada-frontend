@@ -23,14 +23,16 @@
     </a>
 
     <div>
-      <a routerLink="/personnel" routerLinkActive="bg-slate-700 text-white"
-         [routerLinkActiveOptions]="{ exact: true }"
-         class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium">
-        Personnel
-      </a>
       <a routerLink="/personnel/commands" routerLinkActive="bg-slate-600 text-white"
          class="flex items-center gap-3 pl-8 pr-4 py-1.5 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors text-xs font-medium">
         Command Hierarchy
+      </a>
+    </div>
+    <div>
+      <a routerLink="/personnel" routerLinkActive="bg-slate-700 text-white"
+         [routerLinkActiveOptions]="{ exact: true }"
+         class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium">
+        Personnel Management
       </a>
     </div>
 
@@ -38,7 +40,7 @@
       <a routerLink="/inventory" routerLinkActive="bg-slate-700 text-white"
          [routerLinkActiveOptions]="{ exact: true }"
          class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium">
-        Inventory
+        Inventory Management
       </a>
       <a routerLink="/inventory/stock" routerLinkActive="bg-slate-600 text-white"
          class="flex items-center gap-3 pl-8 pr-4 py-1.5 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors text-xs font-medium">
@@ -58,7 +60,7 @@
       <a routerLink="/finance" routerLinkActive="bg-slate-700 text-white"
          [routerLinkActiveOptions]="{ exact: true }"
          class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium">
-        Finance
+        Finance Management
       </a>
       <a routerLink="/finance/income" routerLinkActive="bg-slate-600 text-white"
          class="flex items-center gap-3 pl-8 pr-4 py-1.5 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors text-xs font-medium">
@@ -80,7 +82,7 @@
 
     <a routerLink="/reports" routerLinkActive="bg-slate-700 text-white"
        class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium">
-      Reports
+      Reports Management
     </a>
 
     @if (isAdmin) {

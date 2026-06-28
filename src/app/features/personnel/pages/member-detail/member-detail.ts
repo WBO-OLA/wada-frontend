@@ -10,7 +10,7 @@ import {
   Member, STATUS_LABELS, RANK_LABELS, MemberStatus,
   StatusHistoryEntry, RankHistoryEntry, TransferHistoryEntry, MedicalRecord,
   MemberActivity, ActivityType, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_COLORS,
-  ResponsibilityHistoryEntry
+  ResponsibilityHistoryEntry, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS
 } from '../../../../core/models/member.model';
 import { Command } from '../../../../core/models/command.model';
 import { MemberDocument } from '../../../../core/models/document.model';
@@ -119,6 +119,8 @@ export class MemberDetail implements OnInit {
 
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
+  readonly memberRoleLabels = MEMBER_ROLE_LABELS;
+  readonly memberRoleColors = MEMBER_ROLE_COLORS;
   readonly activityTypeLabels = ACTIVITY_TYPE_LABELS;
   readonly activityTypeColors = ACTIVITY_TYPE_COLORS;
   readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'TRAINING', 'INJURY', 'MISSION', 'MISSION_SUCCESS', 'MISSION_FAILED', 'AWARD', 'RETIREMENT'];
