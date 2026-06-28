@@ -20,7 +20,11 @@ export class AuthService {
       tap(res => {
         if (res.data) {
           localStorage.setItem(TOKEN_KEY, res.data.token);
-          const user: UserInfo = { username: res.data.username, role: res.data.role };
+          const user: UserInfo = {
+            username: res.data.username,
+            role: res.data.role,
+            commandId: res.data.commandId ?? null,
+          };
           localStorage.setItem(USER_KEY, JSON.stringify(user));
         }
       })
@@ -63,6 +67,15 @@ export class AuthService {
 
   isChief(): boolean {
     return this.getRole() === 'CHIEF';
+  }
+
+  isGlobal(): boolean {
+    const role = this.getRole();
+    return role === 'ADMIN' || role === 'CHIEF';
+  }
+
+  getCommandId(): number | null {
+    return this.getUser()?.commandId ?? null;
   }
 
   canApprove(): boolean {
