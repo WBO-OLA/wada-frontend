@@ -53,6 +53,10 @@ export class AdminUsersPage implements OnInit {
   editingRole = signal('');
   editingCommandId = signal<number | null>(null);
 
+  emailChecking = signal(false);
+  emailMemberName = signal<string | null>(null);
+  emailError = signal('');
+
   readonly roleColors = ROLE_COLORS;
 
   get currentRole(): string { return this.auth.getRole(); }
@@ -124,8 +128,27 @@ export class AdminUsersPage implements OnInit {
     });
   }
 
+  checkEmail() {
+    const email = this.form.get('email')?.value?.trim();
+    if (!email || this.form.get('email')?.invalid) { this.emailMemberName.set(null); this.emailError.set(''); return; }
+    this.emailChecking.set(true);
+    this.emailMemberName.set(null);
+    this.emailError.set('');
+    this.http.get<any>(`${environment.apiUrl}/personnel/members/find-by-email?email=${encodeURIComponent(email)}`).subscribe({
+      next: (res: any) => {
+        const m = res?.data ?? res;
+        this.emailMemberName.set(`${m.firstName} ${m.lastName}`);
+        this.emailChecking.set(false);
+      },
+      error: () => {
+        this.emailError.set('No member is registered with this email. Register the member first.');
+        this.emailChecking.set(false);
+      },
+    });
+  }
+
   createUser() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || !this.emailMemberName()) return;
     this.saving.set(true);
     this.error.set('');
     const payload = {
@@ -138,6 +161,8 @@ export class AdminUsersPage implements OnInit {
         this.users.update(list => [user, ...list]);
         this.success.set(`User "${user.username}" created successfully.`);
         this.form.reset({ role: 'USER', commandId: null });
+        this.emailMemberName.set(null);
+        this.emailError.set('');
         this.showForm.set(false);
         this.saving.set(false);
       },
