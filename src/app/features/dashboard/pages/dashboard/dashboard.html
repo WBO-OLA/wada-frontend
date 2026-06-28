@@ -1,67 +1,198 @@
 <div>
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-    @if (activeCommandName()) {
-      <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-        {{ activeCommandName() }}
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Welcome back, <span class="font-semibold text-gray-700">{{ currentUsername }}</span>
+        @if (!isGlobal && scopeName()) {
+          — viewing <span class="font-semibold text-blue-700">{{ scopeName() }}</span>
+        } @else if (isGlobal) {
+          — <span class="text-gray-400">all commands</span>
+        }
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      @if (!isGlobal && scopeName()) {
+        <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+          {{ scopeName() }}
+        </span>
+      } @else {
+        <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block"></span>
+          Global View
+        </span>
+      }
+      <span class="px-3 py-1.5 rounded-full text-xs font-bold border
+        {{ currentRole === 'ADMIN' ? 'bg-red-100 text-red-700 border-red-200' :
+           currentRole === 'CHIEF' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+           currentRole === 'MANAGER' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+           'bg-gray-100 text-gray-600 border-gray-200' }}">
+        {{ currentRole }}
       </span>
-    } @else {
-      <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500">
-        All Commands
-      </span>
-    }
-  </div>
-
-  <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Members</p>
-      <p class="text-3xl font-bold text-gray-900 mt-2">{{ totalMembers() }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Active</p>
-      <p class="text-3xl font-bold text-green-600 mt-2">{{ activeMembers() }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Injured</p>
-      <p class="text-3xl font-bold text-yellow-600 mt-2">{{ injuredMembers() }}</p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-gray-800">Personnel Summary</h2>
-        <a routerLink="/personnel" class="text-sm text-blue-600 hover:underline">View all →</a>
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20 text-gray-400 text-sm">Loading dashboard...</div>
+  } @else {
+
+    <!-- Personnel Stats -->
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Personnel</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Total Members</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalMembers() }}</p>
+        <a routerLink="/personnel" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View all →</a>
       </div>
-      <div class="space-y-2 text-sm text-gray-600">
-        <div class="flex justify-between">
-          <span>Total members</span><span class="font-medium text-gray-900">{{ totalMembers() }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Active</span><span class="font-medium text-green-700">{{ activeMembers() }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Injured</span><span class="font-medium text-yellow-600">{{ injuredMembers() }}</span>
-        </div>
+
+      <div class="bg-white rounded-xl border border-green-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-green-500 uppercase tracking-wider">Active</p>
+        <p class="text-3xl font-bold text-green-700 mt-1">{{ activeMembers() }}</p>
+        <p class="text-xs text-gray-400 mt-2">
+          {{ totalMembers() > 0 ? ((activeMembers() / totalMembers()) * 100 | number:'1.0-0') : 0 }}% of total
+        </p>
       </div>
+
+      <div class="bg-white rounded-xl border border-yellow-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-yellow-500 uppercase tracking-wider">Injured</p>
+        <p class="text-3xl font-bold text-yellow-700 mt-1">{{ injuredMembers() }}</p>
+        @if (injuredMembers() > 0) {
+          <p class="text-xs text-yellow-500 mt-2">Requires attention</p>
+        } @else {
+          <p class="text-xs text-gray-400 mt-2">None reported</p>
+        }
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Retired / Passed</p>
+        <p class="text-3xl font-bold text-gray-500 mt-1">{{ retiredMembers() }}</p>
+        <p class="text-xs text-gray-400 mt-2">&nbsp;</p>
+      </div>
+
     </div>
 
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-gray-800">Inventory Summary</h2>
-        <a routerLink="/inventory" class="text-sm text-blue-600 hover:underline">View all →</a>
+    <!-- Finance Stats -->
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Finance</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+
+      <div class="bg-white rounded-xl border border-emerald-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-emerald-500 uppercase tracking-wider">Total Income</p>
+        <p class="text-3xl font-bold text-emerald-700 mt-1">{{ formatCurrency(totalIncome()) }}</p>
+        <a routerLink="/finance/incomes" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
       </div>
-      <div class="space-y-2 text-sm text-gray-600">
-        <div class="flex justify-between">
-          <span>Total items</span><span class="font-medium text-gray-900">{{ totalItems() }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Low stock items</span>
-          <span class="font-medium" [class]="lowStockItems() > 0 ? 'text-red-600' : 'text-gray-900'">
-            {{ lowStockItems() }}
-          </span>
-        </div>
+
+      <div class="bg-white rounded-xl border border-red-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-red-400 uppercase tracking-wider">Approved Expenses</p>
+        <p class="text-3xl font-bold text-red-600 mt-1">{{ formatCurrency(totalExpensesApproved()) }}</p>
+        <p class="text-xs text-gray-400 mt-2">{{ expenses().length }} total expenses</p>
       </div>
+
+      <div class="bg-white rounded-xl border border-amber-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-amber-500 uppercase tracking-wider">Pending Expenses</p>
+        <p class="text-3xl font-bold text-amber-600 mt-1">{{ pendingExpenses() }}</p>
+        @if (pendingExpenses() > 0) {
+          <a routerLink="/finance/expenses" class="text-xs text-amber-600 hover:underline mt-2 inline-block">Review →</a>
+        } @else {
+          <p class="text-xs text-gray-400 mt-2">All clear</p>
+        }
+      </div>
+
+      <div class="bg-white rounded-xl border border-blue-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-blue-400 uppercase tracking-wider">Active Budgets</p>
+        <p class="text-3xl font-bold text-blue-700 mt-1">{{ activeBudgets() }}</p>
+        <a routerLink="/finance/budgets" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
+      </div>
+
     </div>
-  </div>
+
+    <!-- Inventory Stats -->
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Inventory</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Total Items</p>
+        <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalItems() }}</p>
+        <a routerLink="/inventory" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View all →</a>
+      </div>
+
+      <div class="bg-white rounded-xl border shadow-sm px-4 py-4"
+           [class]="lowStockItems() > 0 ? 'border-red-100' : 'border-gray-100'">
+        <p class="text-xs uppercase tracking-wider" [class]="lowStockItems() > 0 ? 'text-red-400' : 'text-gray-400'">
+          Low Stock
+        </p>
+        <p class="text-3xl font-bold mt-1" [class]="lowStockItems() > 0 ? 'text-red-600' : 'text-gray-500'">
+          {{ lowStockItems() }}
+        </p>
+        @if (lowStockItems() > 0) {
+          <a routerLink="/inventory" class="text-xs text-red-500 hover:underline mt-2 inline-block">Restock →</a>
+        } @else {
+          <p class="text-xs text-gray-400 mt-2">Adequate stock</p>
+        }
+      </div>
+
+      <div class="col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wider">Stock Health</p>
+          <p class="text-sm font-semibold mt-1 text-gray-700">
+            {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
+            items above threshold
+          </p>
+        </div>
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold border-4"
+             [class]="lowStockItems() === 0 ? 'border-green-300 text-green-700' : lowStockItems() < 5 ? 'border-amber-300 text-amber-700' : 'border-red-300 text-red-700'">
+          {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Links -->
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Quick Actions</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+
+      <a routerLink="/personnel"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">👥</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Personnel</span>
+      </a>
+
+      <a routerLink="/personnel/commands"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">🏛</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Commands</span>
+      </a>
+
+      <a routerLink="/inventory"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">📦</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Inventory</span>
+      </a>
+
+      <a routerLink="/finance/budgets"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">💰</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Budgets</span>
+      </a>
+
+      <a routerLink="/finance/expenses"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">🧾</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Expenses</span>
+      </a>
+
+      <a routerLink="/finance/incomes"
+         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
+        <span class="text-2xl">📈</span>
+        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Income</span>
+      </a>
+
+    </div>
+
+  }
+
 </div>
