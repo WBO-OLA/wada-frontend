@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ItemService } from '../../services/item.service';
 import { WarehouseService } from '../../services/warehouse.service';
@@ -12,7 +12,7 @@ import { Command } from '../../../../core/models/command.model';
 
 @Component({
   selector: 'app-item-list',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive, ReactiveFormsModule, FormsModule],
   templateUrl: './item-list.html',
   styleUrl: './item-list.css',
 })

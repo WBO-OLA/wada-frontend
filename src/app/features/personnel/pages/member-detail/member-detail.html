@@ -180,6 +180,16 @@
                   }
                 </div>
                 <div class="bg-gray-50 rounded-xl px-4 py-3">
+                  <p class="text-xs text-gray-400">Role</p>
+                  @if (member()!.memberRole) {
+                    <span class="inline-block text-xs px-2 py-0.5 rounded font-medium mt-0.5" [ngClass]="memberRoleColors[member()!.memberRole!]">
+                      {{ memberRoleLabels[member()!.memberRole!] }}
+                    </span>
+                  } @else {
+                    <p class="font-semibold text-gray-900 mt-0.5">—</p>
+                  }
+                </div>
+                <div class="bg-gray-50 rounded-xl px-4 py-3">
                   <p class="text-xs text-gray-400">Military ID</p>
                   <p class="font-mono font-semibold text-gray-900 mt-0.5">{{ member()!.militaryId }}</p>
                 </div>
