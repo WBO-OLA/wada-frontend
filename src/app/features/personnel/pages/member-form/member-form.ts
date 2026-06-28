@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { MemberService } from '../../services/member.service';
 import { CommandService } from '../../services/command.service';
-import { MilitaryRank, MemberRole, MemberStatus, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS } from '../../../../core/models/member.model';
+import { MilitaryRank, MemberRole, MemberStatus, Gender, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS } from '../../../../core/models/member.model';
 import { CommandWithDepth } from '../../../../core/models/command.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
 import { pastOrTodayValidator, minAgeValidator, todayIso, maxDobIso } from '../../../../core/utils/date-validators';
@@ -21,9 +21,11 @@ export class MemberForm implements OnInit {
     militaryId: ['', Validators.required],
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
+    gender: [null as Gender | null, Validators.required],
+    nationality: ['', Validators.required],
     nationalId: [''],
     phone: [''],
-    email: ['', Validators.email],
+    email: ['', [Validators.required, Validators.email]],
     dateOfBirth: ['', minAgeValidator(18)],
     joinDate: ['', pastOrTodayValidator()],
     rank: ['RECRUIT' as MilitaryRank, Validators.required],
@@ -45,6 +47,7 @@ export class MemberForm implements OnInit {
     'MAJOR', 'LIEUTENANT_COLONEL', 'COLONEL', 'BRIGADIER_GENERAL',
     'MAJOR_GENERAL', 'LIEUTENANT_GENERAL', 'GENERAL',
   ];
+  readonly genders: Gender[] = ['MALE', 'FEMALE'];
   readonly statuses: MemberStatus[] = ['ACTIVE', 'INJURED', 'RETIRED', 'PASSED_AWAY'];
   readonly memberRoles: MemberRole[] = [
     'COMMANDER', 'DEPUTY_COMMANDER', 'TAKIYAA', 'SAGILII', 'ABBAA_BUTTAA',
