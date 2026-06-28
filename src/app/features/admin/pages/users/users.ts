@@ -4,12 +4,14 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
+import { CommandWithDepth } from '../../../../core/models/command.model';
 
 interface UserRecord {
   id: number;
   username: string;
   email: string;
   role: string;
+  commandId?: number | null;
   createdAt: string;
 }
 
@@ -41,6 +43,7 @@ export class AdminUsersPage implements OnInit {
   private fb = inject(FormBuilder);
 
   users = signal<UserRecord[]>([]);
+  commands = signal<CommandWithDepth[]>([]);
   loading = signal(true);
   saving = signal(false);
   showForm = signal(false);
@@ -48,6 +51,7 @@ export class AdminUsersPage implements OnInit {
   success = signal('');
   editingUserId = signal<number | null>(null);
   editingRole = signal('');
+  editingCommandId = signal<number | null>(null);
 
   readonly roleColors = ROLE_COLORS;
 
@@ -71,13 +75,41 @@ export class AdminUsersPage implements OnInit {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: ['USER', Validators.required],
+    commandId: [null as number | null],
   });
 
   ngOnInit() {
     this.load();
-    // Pre-select highest allowed role in form
+    this.loadCommands();
     const top = this.allowedRoles[this.allowedRoles.length - 1] ?? 'USER';
     this.form.patchValue({ role: top === this.currentRole ? top : 'USER' });
+  }
+
+  loadCommands() {
+    this.http.get<any>(`${environment.apiUrl}/personnel/commands`).subscribe({
+      next: (res: any) => {
+        const raw: any[] = Array.isArray(res) ? res : (res?.data ?? []);
+        const withDepth = this.assignDepths(raw);
+        this.commands.set(withDepth);
+      },
+    });
+  }
+
+  private assignDepths(list: any[]): CommandWithDepth[] {
+    const map = new Map<number, CommandWithDepth>();
+    list.forEach(c => map.set(c.id, { ...c, depth: 0 }));
+    map.forEach(c => {
+      if (c.parent?.id) {
+        const parent = map.get(c.parent.id);
+        if (parent) c.depth = parent.depth + 1;
+      }
+    });
+    return Array.from(map.values());
+  }
+
+  commandName(id: number | null | undefined): string {
+    if (!id) return '—';
+    return this.commands().find(c => c.id === id)?.name ?? '—';
   }
 
   load() {
@@ -96,12 +128,16 @@ export class AdminUsersPage implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    this.http.post<any>(`${API}/users`, this.form.value).subscribe({
+    const payload = {
+      ...this.form.value,
+      commandId: this.form.value.commandId ? Number(this.form.value.commandId) : null,
+    };
+    this.http.post<any>(`${API}/users`, payload).subscribe({
       next: (res: any) => {
         const user: UserRecord = res?.data ?? res;
         this.users.update(list => [user, ...list]);
         this.success.set(`User "${user.username}" created successfully.`);
-        this.form.reset({ role: 'USER' });
+        this.form.reset({ role: 'USER', commandId: null });
         this.showForm.set(false);
         this.saving.set(false);
       },
@@ -115,24 +151,34 @@ export class AdminUsersPage implements OnInit {
   startEdit(user: UserRecord) {
     this.editingUserId.set(user.id);
     this.editingRole.set(user.role);
+    this.editingCommandId.set(user.commandId ?? null);
   }
 
   cancelEdit() {
     this.editingUserId.set(null);
     this.editingRole.set('');
+    this.editingCommandId.set(null);
   }
 
   saveEdit(user: UserRecord) {
     const role = this.editingRole();
-    if (!role || role === user.role) { this.cancelEdit(); return; }
-    this.http.patch<any>(`${API}/users/${user.id}/role`, { role }).subscribe({
+    const commandId = this.editingCommandId() ? Number(this.editingCommandId()) : null;
+    const roleChanged = role && role !== user.role;
+    const commandChanged = commandId !== (user.commandId ?? null);
+    if (!roleChanged && !commandChanged) { this.cancelEdit(); return; }
+
+    const patch: any = {};
+    if (roleChanged) patch.role = role;
+    if (commandChanged) patch.commandId = commandId;
+
+    this.http.patch<any>(`${API}/users/${user.id}/role`, patch).subscribe({
       next: (res: any) => {
         const updated: UserRecord = res?.data ?? res;
         this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
-        this.success.set(`Role updated for "${updated.username}".`);
+        this.success.set(`Updated "${updated.username}".`);
         this.cancelEdit();
       },
-      error: (err: any) => { this.error.set(err?.error?.message ?? 'Failed to update role.'); this.cancelEdit(); },
+      error: (err: any) => { this.error.set(err?.error?.message ?? 'Failed to update user.'); this.cancelEdit(); },
     });
   }
 

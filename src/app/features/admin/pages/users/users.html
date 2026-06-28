@@ -55,6 +55,17 @@
             <p class="text-xs text-gray-400 mt-1">You can only create users with your own role ({{ currentRole }}) or below.</p>
           }
         </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Assigned Command</label>
+          <select formControlName="commandId"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white">
+            <option [value]="null">— No command (global access) —</option>
+            @for (c of commands(); track c.id) {
+              <option [value]="c.id">{{ '— '.repeat(c.depth) }}{{ c.name }}</option>
+            }
+          </select>
+          <p class="text-xs text-gray-400 mt-1">Zone/Brigade commanders must be assigned to their command.</p>
+        </div>
         <div class="col-span-1 sm:col-span-2 flex justify-end gap-3 pt-2">
           <button type="button" (click)="showForm.set(false)"
                   class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
@@ -83,6 +94,7 @@
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Email</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Command</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Joined</th>
               <th class="px-4 py-3"></th>
             </tr>
@@ -108,6 +120,15 @@
                     {{ user.role }}
                   </span>
                 </td>
+                <td class="px-4 py-3 hidden lg:table-cell">
+                  @if (user.commandId) {
+                    <span class="text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                      {{ commandName(user.commandId) }}
+                    </span>
+                  } @else {
+                    <span class="text-xs text-gray-400">Global</span>
+                  }
+                </td>
                 <td class="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{{ formatDate(user.createdAt) }}</td>
                 <td class="px-4 py-3 text-right">
                   @if (user.username === currentUser) {
@@ -130,13 +151,23 @@
               <!-- Inline edit row -->
               @if (canManageAll && editingUserId() === user.id) {
                 <tr class="bg-slate-50 border-t border-slate-100">
-                  <td colspan="5" class="px-4 py-3">
+                  <td colspan="6" class="px-4 py-3">
                     <div class="flex items-center gap-3 flex-wrap">
-                      <span class="text-xs font-medium text-gray-600">Change role for <strong>{{ user.username }}</strong>:</span>
+                      <span class="text-xs font-medium text-gray-600">Edit <strong>{{ user.username }}</strong>:</span>
                       <select [value]="editingRole()" (change)="editingRole.set($any($event.target).value)"
                               class="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400">
                         @for (r of editableRoles; track r) {
                           <option [value]="r" [selected]="r === editingRole()">{{ r }}</option>
+                        }
+                      </select>
+                      <select [value]="editingCommandId() ?? ''"
+                              (change)="editingCommandId.set($any($event.target).value ? +$any($event.target).value : null)"
+                              class="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+                        <option value="">— Global —</option>
+                        @for (c of commands(); track c.id) {
+                          <option [value]="c.id" [selected]="c.id === editingCommandId()">
+                            {{ '— '.repeat(c.depth) }}{{ c.name }}
+                          </option>
                         }
                       </select>
                       <button (click)="saveEdit(user)"
