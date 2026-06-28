@@ -148,6 +148,9 @@
               <option [value]="r">{{ memberRoleLabels[r] }}</option>
             }
           </select>
+          @if (form.get('memberRole')?.invalid && form.get('memberRole')?.touched) {
+            <p class="text-xs text-red-500 mt-1">Role is required.</p>
+          }
         </div>
 
         <div class="sm:col-span-2">

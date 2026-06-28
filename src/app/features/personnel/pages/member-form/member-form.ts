@@ -83,6 +83,7 @@ export class MemberForm implements OnInit {
   }
 
   submit() {
+    this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.saving.set(true);
     const value = this.form.value as any;
