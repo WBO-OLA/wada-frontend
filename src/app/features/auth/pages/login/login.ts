@@ -26,6 +26,14 @@ export class LoginPage {
 
   loading = signal(false);
   error = signal('');
+  showPassword = signal(false);
+
+  features = [
+    { icon: '👤', label: 'Personnel Management', desc: 'Track members, ranks, and transfers' },
+    { icon: '💰', label: 'Finance Control', desc: 'Budgets, expenses, and income tracking' },
+    { icon: '📦', label: 'Inventory System', desc: 'Items, warehouses, and stock levels' },
+    { icon: '📊', label: 'Reporting & Analytics', desc: 'Zone-scoped reports and dashboards' },
+  ];
 
   submit(): void {
     if (this.form.invalid) return;
