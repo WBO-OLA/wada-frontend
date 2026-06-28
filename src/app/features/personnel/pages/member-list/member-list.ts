@@ -55,6 +55,22 @@ export class MemberList implements OnInit {
     PASSED_AWAY: 'bg-red-100 text-red-700',
   };
 
+  readonly statusDotColors: Record<MemberStatus, string> = {
+    ACTIVE: 'bg-green-500',
+    INJURED: 'bg-yellow-500',
+    RETIRED: 'bg-gray-400',
+    PASSED_AWAY: 'bg-red-500',
+  };
+
+  get totalCount()   { return this.members().length; }
+  get activeCount()  { return this.members().filter(m => m.status === 'ACTIVE').length; }
+  get injuredCount() { return this.members().filter(m => m.status === 'INJURED').length; }
+  get retiredCount() { return this.members().filter(m => m.status === 'RETIRED' || m.status === 'PASSED_AWAY').length; }
+
+  statusFilterTyped()  { return this.statusFilter() as MemberStatus; }
+  rankFilterTyped()    { return this.rankFilter() as MilitaryRank; }
+  roleFilterTyped()    { return this.roleFilter() as MemberRole; }
+
   get canEdit(): boolean { return this.auth.canEdit(); }
 
   filteredMembers = computed(() => {
