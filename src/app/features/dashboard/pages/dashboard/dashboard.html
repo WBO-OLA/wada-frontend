@@ -1,196 +1,238 @@
-<div>
+<div class="max-w-5xl space-y-6">
 
-  <!-- Header -->
-  <div class="flex items-start justify-between mb-6 flex-wrap gap-3">
+  <!-- ── Header ── -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Welcome back, <span class="font-semibold text-gray-700">{{ currentUsername }}</span>
+      <h1 class="text-2xl font-bold text-gray-900">
+        Welcome back, <span class="text-slate-700">{{ currentUsername }}</span>
+      </h1>
+      <p class="text-sm text-gray-500 mt-0.5">
         @if (!isGlobal && scopeName()) {
-          — viewing <span class="font-semibold text-blue-700">{{ scopeName() }}</span>
-        } @else if (isGlobal) {
-          — <span class="text-gray-400">all commands</span>
+          Viewing data for <span class="font-semibold text-blue-700">{{ scopeName() }}</span>
+        } @else {
+          System overview — all commands
         }
       </p>
     </div>
-
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-shrink-0">
       @if (!isGlobal && scopeName()) {
-        <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
           {{ scopeName() }}
         </span>
       } @else {
-        <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-          <span class="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block"></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
           Global View
         </span>
       }
-      <span class="px-3 py-1.5 rounded-full text-xs font-bold border
-        {{ currentRole === 'ADMIN' ? 'bg-red-100 text-red-700 border-red-200' :
-           currentRole === 'CHIEF' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-           currentRole === 'MANAGER' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-           'bg-gray-100 text-gray-600 border-gray-200' }}">
+      <span class="px-3 py-1.5 rounded-full text-xs font-bold border"
+            [ngClass]="{
+              'bg-red-100 text-red-700 border-red-200':    currentRole === 'ADMIN',
+              'bg-purple-100 text-purple-700 border-purple-200': currentRole === 'CHIEF',
+              'bg-blue-100 text-blue-700 border-blue-200': currentRole === 'MANAGER',
+              'bg-gray-100 text-gray-600 border-gray-200': currentRole !== 'ADMIN' && currentRole !== 'CHIEF' && currentRole !== 'MANAGER'
+            }">
         {{ currentRole }}
       </span>
     </div>
   </div>
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-20 text-gray-400 text-sm">Loading dashboard...</div>
+    <div class="py-24 flex flex-col items-center gap-3 text-gray-400">
+      <div class="w-8 h-8 border-2 border-gray-200 border-t-slate-500 rounded-full animate-spin"></div>
+      <p class="text-sm">Loading dashboard…</p>
+    </div>
   } @else {
 
-    <!-- Personnel Stats -->
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Personnel</p>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <!-- ── Finance highlight row ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-gray-400 uppercase tracking-wider">Total Members</p>
-        <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalMembers() }}</p>
-        <a routerLink="/personnel" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View all →</a>
-      </div>
-
-      <div class="bg-white rounded-xl border border-green-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-green-500 uppercase tracking-wider">Active</p>
-        <p class="text-3xl font-bold text-green-700 mt-1">{{ activeMembers() }}</p>
-        <p class="text-xs text-gray-400 mt-2">
-          {{ totalMembers() > 0 ? ((activeMembers() / totalMembers()) * 100 | number:'1.0-0') : 0 }}% of total
+      <!-- Net balance -->
+      <div class="sm:col-span-1 bg-slate-900 rounded-2xl p-5 text-white">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Net Balance</p>
+        <p class="text-3xl font-bold mt-2">
+          {{ formatCurrency(totalIncome() - totalExpensesApproved()) }}
         </p>
+        <p class="text-xs text-slate-400 mt-2">Income minus approved expenses</p>
+        <div class="mt-4 flex items-center gap-3 text-xs">
+          <span class="text-emerald-400">↑ {{ formatCurrency(totalIncome()) }} in</span>
+          <span class="text-red-400">↓ {{ formatCurrency(totalExpensesApproved()) }} out</span>
+        </div>
       </div>
 
-      <div class="bg-white rounded-xl border border-yellow-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-yellow-500 uppercase tracking-wider">Injured</p>
-        <p class="text-3xl font-bold text-yellow-700 mt-1">{{ injuredMembers() }}</p>
-        @if (injuredMembers() > 0) {
-          <p class="text-xs text-yellow-500 mt-2">Requires attention</p>
-        } @else {
-          <p class="text-xs text-gray-400 mt-2">None reported</p>
-        }
+      <!-- Active budgets -->
+      <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-5">
+        <p class="text-xs text-blue-500 uppercase tracking-widest font-semibold">Active Budgets</p>
+        <p class="text-3xl font-bold text-blue-700 mt-2">{{ activeBudgets() }}</p>
+        <p class="text-xs text-gray-400 mt-2">Budget plans in effect</p>
+        <a routerLink="/finance/budget" class="mt-3 inline-block text-xs text-blue-500 hover:underline">View budgets →</a>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-gray-400 uppercase tracking-wider">Retired / Passed</p>
-        <p class="text-3xl font-bold text-gray-500 mt-1">{{ retiredMembers() }}</p>
-        <p class="text-xs text-gray-400 mt-2">&nbsp;</p>
-      </div>
-
-    </div>
-
-    <!-- Finance Stats -->
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Finance</p>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-
-      <div class="bg-white rounded-xl border border-emerald-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-emerald-500 uppercase tracking-wider">Total Income</p>
-        <p class="text-3xl font-bold text-emerald-700 mt-1">{{ formatCurrency(totalIncome()) }}</p>
-        <a routerLink="/finance/income" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
-      </div>
-
-      <div class="bg-white rounded-xl border border-red-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-red-400 uppercase tracking-wider">Approved Expenses</p>
-        <p class="text-3xl font-bold text-red-600 mt-1">{{ formatCurrency(totalExpensesApproved()) }}</p>
-        <p class="text-xs text-gray-400 mt-2">{{ expenses().length }} total expenses</p>
-      </div>
-
-      <div class="bg-white rounded-xl border border-amber-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-amber-500 uppercase tracking-wider">Pending Expenses</p>
-        <p class="text-3xl font-bold text-amber-600 mt-1">{{ pendingExpenses() }}</p>
+      <!-- Pending expenses -->
+      <div class="bg-white rounded-2xl border shadow-sm p-5"
+           [class]="pendingExpenses() > 0 ? 'border-amber-200' : 'border-gray-100'">
+        <p class="text-xs uppercase tracking-widest font-semibold"
+           [class]="pendingExpenses() > 0 ? 'text-amber-500' : 'text-gray-400'">
+          Pending Expenses
+        </p>
+        <p class="text-3xl font-bold mt-2" [class]="pendingExpenses() > 0 ? 'text-amber-600' : 'text-gray-500'">
+          {{ pendingExpenses() }}
+        </p>
         @if (pendingExpenses() > 0) {
-          <a routerLink="/finance/expenses" class="text-xs text-amber-600 hover:underline mt-2 inline-block">Review →</a>
+          <p class="text-xs text-amber-600 mt-2">Awaiting approval</p>
+          <a routerLink="/finance/expenses" class="mt-3 inline-block text-xs text-amber-600 hover:underline font-semibold">Review →</a>
         } @else {
           <p class="text-xs text-gray-400 mt-2">All clear</p>
         }
       </div>
 
-      <div class="bg-white rounded-xl border border-blue-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-blue-400 uppercase tracking-wider">Active Budgets</p>
-        <p class="text-3xl font-bold text-blue-700 mt-1">{{ activeBudgets() }}</p>
-        <a routerLink="/finance/budget" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View →</a>
-      </div>
-
     </div>
 
-    <!-- Inventory Stats -->
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Inventory</p>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4">
-        <p class="text-xs text-gray-400 uppercase tracking-wider">Total Items</p>
-        <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalItems() }}</p>
-        <a routerLink="/inventory" class="text-xs text-blue-500 hover:underline mt-2 inline-block">View all →</a>
+    <!-- ── Personnel ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Personnel</p>
+        <div class="flex-1 h-px bg-gray-100"></div>
+        <a routerLink="/personnel" class="text-xs text-blue-500 hover:underline">View all →</a>
       </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
-      <div class="bg-white rounded-xl border shadow-sm px-4 py-4"
-           [class]="lowStockItems() > 0 ? 'border-red-100' : 'border-gray-100'">
-        <p class="text-xs uppercase tracking-wider" [class]="lowStockItems() > 0 ? 'text-red-400' : 'text-gray-400'">
-          Low Stock
-        </p>
-        <p class="text-3xl font-bold mt-1" [class]="lowStockItems() > 0 ? 'text-red-600' : 'text-gray-500'">
-          {{ lowStockItems() }}
-        </p>
-        @if (lowStockItems() > 0) {
-          <a routerLink="/inventory" class="text-xs text-red-500 hover:underline mt-2 inline-block">Restock →</a>
-        } @else {
-          <p class="text-xs text-gray-400 mt-2">Adequate stock</p>
-        }
-      </div>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wider">Total</p>
+          <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalMembers() }}</p>
+          <p class="text-xs text-gray-400 mt-2">Registered members</p>
+        </div>
 
-      <div class="col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex items-center justify-between">
-        <div>
-          <p class="text-xs text-gray-400 uppercase tracking-wider">Stock Health</p>
-          <p class="text-sm font-semibold mt-1 text-gray-700">
-            {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
-            items above threshold
+        <div class="bg-white rounded-2xl border border-green-100 shadow-sm px-4 py-4">
+          <p class="text-xs text-green-500 uppercase tracking-wider">Active</p>
+          <p class="text-3xl font-bold text-green-700 mt-1">{{ activeMembers() }}</p>
+          <p class="text-xs text-gray-400 mt-2">
+            {{ totalMembers() > 0 ? ((activeMembers() / totalMembers()) * 100 | number:'1.0-0') : 0 }}% of total
           </p>
         </div>
-        <div class="w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold border-4"
-             [class]="lowStockItems() === 0 ? 'border-green-300 text-green-700' : lowStockItems() < 5 ? 'border-amber-300 text-amber-700' : 'border-red-300 text-red-700'">
-          {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
-        </div>
-      </div>
 
+        <div class="bg-white rounded-2xl border shadow-sm px-4 py-4"
+             [class]="injuredMembers() > 0 ? 'border-yellow-200' : 'border-gray-100'">
+          <p class="text-xs uppercase tracking-wider"
+             [class]="injuredMembers() > 0 ? 'text-yellow-500' : 'text-gray-400'">Injured</p>
+          <p class="text-3xl font-bold mt-1"
+             [class]="injuredMembers() > 0 ? 'text-yellow-700' : 'text-gray-400'">
+            {{ injuredMembers() }}
+          </p>
+          @if (injuredMembers() > 0) {
+            <p class="text-xs text-yellow-500 mt-2">Requires attention</p>
+          } @else {
+            <p class="text-xs text-gray-400 mt-2">None reported</p>
+          }
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wider">Retired / Passed</p>
+          <p class="text-3xl font-bold text-gray-400 mt-1">{{ retiredMembers() }}</p>
+          <p class="text-xs text-gray-300 mt-2">&nbsp;</p>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Quick Links -->
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Quick Actions</p>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <!-- ── Inventory ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Inventory</p>
+        <div class="flex-1 h-px bg-gray-100"></div>
+        <a routerLink="/inventory" class="text-xs text-blue-500 hover:underline">View all →</a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-      <a routerLink="/personnel"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">👥</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Personnel</span>
-      </a>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wider">Total Items</p>
+          <p class="text-3xl font-bold text-gray-900 mt-1">{{ totalItems() }}</p>
+          <p class="text-xs text-gray-400 mt-2">Items in system</p>
+        </div>
 
-      <a routerLink="/personnel/commands"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">🏛</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Commands</span>
-      </a>
+        <div class="bg-white rounded-2xl border shadow-sm px-4 py-4"
+             [class]="lowStockItems() > 0 ? 'border-red-200' : 'border-gray-100'">
+          <p class="text-xs uppercase tracking-wider"
+             [class]="lowStockItems() > 0 ? 'text-red-400' : 'text-gray-400'">Low Stock</p>
+          <p class="text-3xl font-bold mt-1"
+             [class]="lowStockItems() > 0 ? 'text-red-600' : 'text-gray-400'">
+            {{ lowStockItems() }}
+          </p>
+          @if (lowStockItems() > 0) {
+            <a routerLink="/inventory" class="mt-2 inline-block text-xs text-red-500 hover:underline font-semibold">Restock →</a>
+          } @else {
+            <p class="text-xs text-gray-400 mt-2">Adequate stock</p>
+          }
+        </div>
 
-      <a routerLink="/inventory"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">📦</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Inventory</span>
-      </a>
+        <!-- Stock health ring -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Stock Health</p>
+            <p class="text-lg font-bold text-gray-800 mt-1">
+              {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
+            </p>
+            <p class="text-xs text-gray-400 mt-1">items above threshold</p>
+          </div>
+          <div class="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold border-4 flex-shrink-0"
+               [ngClass]="{
+                 'border-green-300 text-green-700': lowStockItems() === 0,
+                 'border-amber-300 text-amber-700': lowStockItems() > 0 && lowStockItems() < 5,
+                 'border-red-300 text-red-700':     lowStockItems() >= 5
+               }">
+            {{ totalItems() > 0 ? (((totalItems() - lowStockItems()) / totalItems()) * 100 | number:'1.0-0') : 100 }}%
+          </div>
+        </div>
 
-      <a routerLink="/finance/budget"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">💰</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Budgets</span>
-      </a>
+      </div>
+    </div>
 
-      <a routerLink="/finance/expenses"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">🧾</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Expenses</span>
-      </a>
+    <!-- ── Quick Actions ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Quick Actions</p>
+        <div class="flex-1 h-px bg-gray-100"></div>
+      </div>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
 
-      <a routerLink="/finance/income"
-         class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow transition group">
-        <span class="text-2xl">📈</span>
-        <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900">Income</span>
-      </a>
+        <a routerLink="/personnel"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">👥</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Personnel</span>
+        </a>
 
+        <a routerLink="/personnel/commands"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">🏛</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Commands</span>
+        </a>
+
+        <a routerLink="/inventory"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">📦</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Inventory</span>
+        </a>
+
+        <a routerLink="/finance/budget"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">💰</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Budgets</span>
+        </a>
+
+        <a routerLink="/finance/expenses"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">🧾</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Expenses</span>
+        </a>
+
+        <a routerLink="/reports"
+           class="bg-white rounded-2xl border border-gray-100 shadow-sm py-4 px-2 flex flex-col items-center gap-2 hover:border-slate-300 hover:shadow-md transition-all group">
+          <span class="text-2xl group-hover:scale-110 transition-transform">📊</span>
+          <span class="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">Reports</span>
+        </a>
+
+      </div>
     </div>
 
   }

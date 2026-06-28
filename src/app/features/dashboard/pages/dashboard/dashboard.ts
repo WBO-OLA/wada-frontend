@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { MemberService } from '../../../personnel/services/member.service';
 import { ItemService } from '../../../inventory/services/item.service';
@@ -13,7 +13,7 @@ import { Item } from '../../../../core/models/item.model';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, CommonModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
