@@ -37,7 +37,6 @@ export class MemberDetail implements OnInit {
   uploadForm = this.fb.group({ description: [''] });
   responsibilityForm = this.fb.group({
     responsibility: ['', Validators.required],
-    changedBy: ['', Validators.required],
     reason: [''],
   });
   roleForm = this.fb.group({
@@ -46,7 +45,6 @@ export class MemberDetail implements OnInit {
   });
   transferForm = this.fb.group({
     toCommandId: [null as number | null],
-    transferredBy: ['', Validators.required],
     reason: [''],
   });
   activityForm = this.fb.group({
@@ -273,10 +271,10 @@ export class MemberDetail implements OnInit {
     if (this.responsibilityForm.invalid || !this.member()?.id) return;
     this.responsibilitySubmitting.set(true);
     this.responsibilityError.set('');
-    const { responsibility, changedBy, reason } = this.responsibilityForm.value;
+    const { responsibility, reason } = this.responsibilityForm.value;
     this.memberService.updateResponsibility(this.member()!.id!, {
       responsibility: responsibility!,
-      changedBy: changedBy!,
+      changedBy: this.currentUser,
       reason: reason ?? undefined,
     }).subscribe({
       next: updated => {
@@ -297,10 +295,10 @@ export class MemberDetail implements OnInit {
     if (this.transferForm.invalid || !this.member()?.id) return;
     this.transferSubmitting.set(true);
     this.transferError.set('');
-    const { toCommandId, transferredBy, reason } = this.transferForm.value;
+    const { toCommandId, reason } = this.transferForm.value;
     this.memberService.transfer(this.member()!.id!, {
       toCommandId: toCommandId ?? null,
-      transferredBy: transferredBy!,
+      transferredBy: this.currentUser,
       reason: reason ?? undefined,
     }).subscribe({
       next: updated => {
