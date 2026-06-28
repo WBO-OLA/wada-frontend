@@ -87,4 +87,9 @@ export class AuthService {
     const role = this.getRole();
     return role === 'ADMIN' || role === 'CHIEF' || role === 'MANAGER';
   }
+
+  canUploadPhoto(): boolean {
+    const role = this.getRole();
+    return role === 'ADMIN' || role === 'CHIEF';
+  }
 }

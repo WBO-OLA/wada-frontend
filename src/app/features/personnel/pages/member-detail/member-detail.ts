@@ -142,6 +142,7 @@ export class MemberDetail implements OnInit {
   }
 
   get canEdit(): boolean { return this.auth.canEdit(); }
+  get canUploadPhoto(): boolean { return this.auth.canUploadPhoto(); }
 
   get canViewMedical(): boolean {
     const r = this.auth.getRole();

@@ -26,7 +26,7 @@
               {{ member()!.firstName[0] }}{{ member()!.lastName[0] }}
             }
           </div>
-          @if (canEdit) {
+          @if (canUploadPhoto) {
             <label class="absolute -bottom-1 -right-1 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center cursor-pointer hover:bg-slate-700 transition text-xs shadow" title="Upload photo">
               📷
               <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
