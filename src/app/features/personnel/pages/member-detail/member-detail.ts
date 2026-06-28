@@ -16,6 +16,7 @@ import { Command } from '../../../../core/models/command.model';
 import { MemberDocument } from '../../../../core/models/document.model';
 import { AssetAssignment } from '../../../../core/models/asset-assignment.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { pastOrTodayValidator, todayIso } from '../../../../core/utils/date-validators';
 
 @Component({
   selector: 'app-member-detail',
@@ -46,11 +47,11 @@ export class MemberDetail implements OnInit {
   activityForm = this.fb.group({
     title: ['', Validators.required],
     description: [''],
-    activityDate: ['', Validators.required],
+    activityDate: ['', [Validators.required, pastOrTodayValidator()]],
     type: ['JOIN' as ActivityType, Validators.required],
   });
   medicalForm = this.fb.group({
-    recordDate: ['', Validators.required],
+    recordDate: ['', [Validators.required, pastOrTodayValidator()]],
     diagnosis: ['', Validators.required],
     treatment: [''],
     physician: [''],
@@ -124,6 +125,8 @@ export class MemberDetail implements OnInit {
   readonly activityTypeLabels = ACTIVITY_TYPE_LABELS;
   readonly activityTypeColors = ACTIVITY_TYPE_COLORS;
   readonly activityTypes: ActivityType[] = ['JOIN', 'PROMOTION', 'TRAINING', 'INJURY', 'MISSION', 'MISSION_SUCCESS', 'MISSION_FAILED', 'AWARD', 'RETIREMENT'];
+  readonly today = todayIso();
+
   readonly statusColors: Record<MemberStatus, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
     INJURED: 'bg-yellow-100 text-yellow-700',

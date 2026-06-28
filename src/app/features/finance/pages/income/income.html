@@ -150,8 +150,12 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Date Received</label>
-          <input formControlName="receivedDate" type="date"
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+          <input formControlName="receivedDate" type="date" [max]="today"
+                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                 [class.border-red-300]="form.get('receivedDate')?.invalid && form.get('receivedDate')?.touched" />
+          @if (form.get('receivedDate')?.hasError('futureDate') && form.get('receivedDate')?.touched) {
+            <p class="text-xs text-red-500 mt-1">Date received cannot be in the future.</p>
+          }
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Reference</label>

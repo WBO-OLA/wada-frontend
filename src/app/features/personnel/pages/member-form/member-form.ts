@@ -7,6 +7,7 @@ import { CommandService } from '../../services/command.service';
 import { MilitaryRank, MemberRole, MemberStatus, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS } from '../../../../core/models/member.model';
 import { CommandWithDepth } from '../../../../core/models/command.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
+import { pastOrTodayValidator, minAgeValidator, todayIso, maxDobIso } from '../../../../core/utils/date-validators';
 
 @Component({
   selector: 'app-member-form',
@@ -23,8 +24,8 @@ export class MemberForm implements OnInit {
     nationalId: [''],
     phone: [''],
     email: ['', Validators.email],
-    dateOfBirth: [''],
-    joinDate: [''],
+    dateOfBirth: ['', minAgeValidator(18)],
+    joinDate: ['', pastOrTodayValidator()],
     rank: ['RECRUIT' as MilitaryRank, Validators.required],
     memberRole: [null as MemberRole | null, Validators.required],
     commandId: [null as number | null, Validators.required],
@@ -54,6 +55,8 @@ export class MemberForm implements OnInit {
   readonly rankLabels = RANK_LABELS;
   readonly statusLabels = STATUS_LABELS;
   readonly memberRoleLabels = MEMBER_ROLE_LABELS;
+  readonly today = todayIso();
+  readonly maxDob = maxDobIso(18);
 
   private memberService = inject(MemberService);
   private commandService = inject(CommandService);

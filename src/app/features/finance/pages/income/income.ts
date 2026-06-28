@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { CommandService } from '../../../personnel/services/command.service';
 import { Income, IncomeAggregate } from '../../../../core/models/finance.model';
 import { Command } from '../../../../core/models/command.model';
+import { pastOrTodayValidator, todayIso } from '../../../../core/utils/date-validators';
 
 @Component({
   selector: 'app-income',
@@ -34,7 +35,7 @@ export class IncomePage implements OnInit {
     source: [''],
     category: [''],
     commandId: [null as number | null],
-    receivedDate: [''],
+    receivedDate: ['', pastOrTodayValidator()],
     reference: [''],
     notes: [''],
   });
@@ -49,6 +50,8 @@ export class IncomePage implements OnInit {
   saving = signal(false);
   error = signal('');
   success = signal('');
+
+  readonly today = todayIso();
 
   commandName(id: number | null | undefined): string {
     if (!id) return '';

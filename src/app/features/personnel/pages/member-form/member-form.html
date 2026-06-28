@@ -1,122 +1,198 @@
 <div class="max-w-2xl">
-  <div class="flex items-center gap-3 mb-6">
-    <a routerLink="/personnel" class="text-gray-400 hover:text-gray-600 text-sm">← Personnel</a>
+
+  <!-- Breadcrumb + header -->
+  <div class="flex items-center gap-2 text-sm mb-5">
+    <a routerLink="/personnel" class="text-gray-400 hover:text-gray-600 transition-colors">← Personnel</a>
     <span class="text-gray-300">/</span>
-    <h1 class="text-xl font-bold text-gray-900">{{ isEdit() ? 'Edit Member' : 'Register Member' }}</h1>
+    <span class="text-gray-600 font-medium">{{ isEdit() ? 'Edit Member' : 'Register Member' }}</span>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">{{ isEdit() ? 'Edit Member' : 'Register New Member' }}</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {{ isEdit() ? 'Update member information below.' : 'Fill in the details to register a new member into the system.' }}
+    </p>
+  </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Military ID *</label>
-        <input formControlName="militaryId" type="text" placeholder="e.g. MIL-2024-001"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+    <!-- ── Identity ── -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Identity</p>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">National ID</label>
-        <input formControlName="nationalId" type="text"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Military ID <span class="text-red-400">*</span>
+          </label>
+          <input formControlName="militaryId" type="text" placeholder="e.g. MIL-2024-001"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('militaryId')?.invalid && form.get('militaryId')?.touched" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">National ID</label>
+          <input formControlName="nationalId" type="text"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            First Name <span class="text-red-400">*</span>
+          </label>
+          <input formControlName="firstName" type="text"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('firstName')?.invalid && form.get('firstName')?.touched" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Last Name <span class="text-red-400">*</span>
+          </label>
+          <input formControlName="lastName" type="text"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('lastName')?.invalid && form.get('lastName')?.touched" />
+        </div>
+
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">First Name *</label>
-        <input formControlName="firstName" type="text"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+    <!-- ── Personal Details ── -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Personal Details</p>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Last Name *</label>
-        <input formControlName="lastName" type="text"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-      </div>
-    </div>
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Phone</label>
-        <input formControlName="phone" type="tel"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Email</label>
-        <input formControlName="email" type="email"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
-        <input formControlName="dateOfBirth" type="date"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Date Joined</label>
-        <input formControlName="joinDate" type="date"
-               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Rank *</label>
-        <select formControlName="rank"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
-          @for (r of ranks; track r) {
-            <option [value]="r">{{ rankLabels[r] }}</option>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
+          <input formControlName="dateOfBirth" type="date" [max]="maxDob"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('dateOfBirth')?.invalid && form.get('dateOfBirth')?.touched" />
+          @if (form.get('dateOfBirth')?.hasError('minAge') && form.get('dateOfBirth')?.touched) {
+            <p class="text-xs text-red-500 mt-1">Member must be at least 18 years old.</p>
           }
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Role *</label>
-        <select formControlName="memberRole"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
-          <option [value]="null" disabled>Select role...</option>
-          @for (r of memberRoles; track r) {
-            <option [value]="r">{{ memberRoleLabels[r] }}</option>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Phone</label>
+          <input formControlName="phone" type="tel" placeholder="+251…"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-700 mb-1">Email</label>
+          <input formControlName="email" type="email"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('email')?.invalid && form.get('email')?.touched" />
+          @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+            <p class="text-xs text-red-500 mt-1">Enter a valid email address.</p>
           }
-        </select>
+        </div>
+
       </div>
     </div>
 
-    <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1">Command *</label>
-      <select formControlName="commandId"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
-        <option [value]="null" disabled>Select a command...</option>
-        @for (c of commands(); track c.id) {
-          <option [value]="c.id">{{ indentLabel(c.depth, c.name) }}</option>
-        }
-      </select>
+    <!-- ── Service Information ── -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Service Information</p>
+      </div>
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Date Joined</label>
+          <input formControlName="joinDate" type="date" [max]="today"
+                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                 [class.border-red-300]="form.get('joinDate')?.invalid && form.get('joinDate')?.touched" />
+          @if (form.get('joinDate')?.hasError('futureDate') && form.get('joinDate')?.touched) {
+            <p class="text-xs text-red-500 mt-1">Join date cannot be in the future.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Status <span class="text-red-400">*</span>
+          </label>
+          <select formControlName="status"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 transition">
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ statusLabels[s] }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Rank <span class="text-red-400">*</span>
+          </label>
+          <select formControlName="rank"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 transition">
+            @for (r of ranks; track r) {
+              <option [value]="r">{{ rankLabels[r] }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Role <span class="text-red-400">*</span>
+          </label>
+          <select formControlName="memberRole"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                  [class.border-red-300]="form.get('memberRole')?.invalid && form.get('memberRole')?.touched">
+            <option [value]="null" disabled>Select role…</option>
+            @for (r of memberRoles; track r) {
+              <option [value]="r">{{ memberRoleLabels[r] }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-700 mb-1">
+            Command / Zone / Brigade <span class="text-red-400">*</span>
+          </label>
+          <select formControlName="commandId"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 transition"
+                  [class.border-red-300]="form.get('commandId')?.invalid && form.get('commandId')?.touched">
+            <option [value]="null" disabled>Select a command…</option>
+            @for (c of commands(); track c.id) {
+              <option [value]="c.id">{{ indentLabel(c.depth, c.name) }}</option>
+            }
+          </select>
+          <p class="text-xs text-gray-400 mt-1">This determines the member's zone scope for access control.</p>
+        </div>
+
+      </div>
     </div>
 
-    <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1">Status *</label>
-      <select formControlName="status"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400">
-        @for (s of statuses; track s) {
-          <option [value]="s">{{ statusLabels[s] }}</option>
-        }
-      </select>
+    <!-- ── Notes ── -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Notes</p>
+      </div>
+      <div class="p-5">
+        <textarea formControlName="notes" rows="3" placeholder="Any additional notes about this member…"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition resize-none"></textarea>
+      </div>
     </div>
 
-    <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
-      <textarea formControlName="notes" rows="3"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"></textarea>
-    </div>
-
-    <div class="flex gap-3 pt-2">
+    <!-- ── Actions ── -->
+    <div class="flex items-center gap-3 pt-1 pb-6">
       <button type="submit" [disabled]="form.invalid || saving()"
-              class="px-5 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors">
-        {{ saving() ? 'Saving...' : (isEdit() ? 'Save Changes' : 'Register Member') }}
+              class="px-6 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 disabled:opacity-50 transition-colors">
+        {{ saving() ? 'Saving…' : (isEdit() ? 'Save Changes' : 'Register Member') }}
       </button>
       <a routerLink="/personnel"
-         class="px-5 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+         class="px-6 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
         Cancel
       </a>
+      @if (form.invalid && form.touched) {
+        <span class="text-xs text-red-500 ml-1">Please fill in all required fields.</span>
+      }
     </div>
+
   </form>
 </div>

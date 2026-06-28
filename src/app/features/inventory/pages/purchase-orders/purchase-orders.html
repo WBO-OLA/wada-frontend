@@ -61,8 +61,9 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Expected Delivery</label>
-          <input formControlName="expectedDeliveryDate" type="date"
+          <input formControlName="expectedDeliveryDate" type="date" [min]="today"
                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500" />
+          <p class="text-xs text-gray-400 mt-1">Must be today or a future date.</p>
         </div>
         <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>

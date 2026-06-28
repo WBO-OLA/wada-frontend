@@ -9,6 +9,7 @@ import {
   ORDER_STATUS_LABELS, ORDER_STATUS_COLORS
 } from '../../../../core/models/purchase-order.model';
 import { Command } from '../../../../core/models/command.model';
+import { todayIso } from '../../../../core/utils/date-validators';
 
 @Component({
   selector: 'app-purchase-orders',
@@ -48,6 +49,8 @@ export class PurchaseOrdersPage implements OnInit {
     expectedDeliveryDate: [''],
     notes: [''],
   });
+
+  readonly today = todayIso();
 
   commandName(id: number | null | undefined): string {
     if (!id) return '';
