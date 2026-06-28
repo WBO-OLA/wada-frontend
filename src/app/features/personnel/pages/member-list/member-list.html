@@ -66,6 +66,7 @@
               <th class="px-4 py-3 text-left hidden sm:table-cell">Military ID</th>
               <th class="px-4 py-3 text-left hidden md:table-cell">Rank</th>
               <th class="px-4 py-3 text-left hidden md:table-cell">Command</th>
+              <th class="px-4 py-3 text-left hidden lg:table-cell">Role</th>
               <th class="px-4 py-3 text-left">Status</th>
               <th class="px-4 py-3 text-left hidden lg:table-cell">Joined</th>
               <th class="px-4 py-3 text-right">Actions</th>
@@ -89,6 +90,15 @@
                 <td class="px-4 py-3 font-mono text-xs text-gray-600 hidden sm:table-cell">{{ m.militaryId }}</td>
                 <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ rankLabels[m.rank] }}</td>
                 <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ m.command?.name ?? '—' }}</td>
+                <td class="px-4 py-3 hidden lg:table-cell">
+                  @if (m.memberRole) {
+                    <span class="px-2 py-0.5 rounded text-xs font-medium" [ngClass]="memberRoleColors[m.memberRole]">
+                      {{ memberRoleLabels[m.memberRole] }}
+                    </span>
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
+                </td>
                 <td class="px-4 py-3">
                   <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="statusColors[m.status]">
                     {{ statusLabels[m.status] }}

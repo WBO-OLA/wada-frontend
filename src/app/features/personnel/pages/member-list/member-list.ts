@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../services/member.service';
 import { CommandService } from '../../services/command.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS, MilitaryRank } from '../../../../core/models/member.model';
+import { Member, MemberStatus, STATUS_LABELS, RANK_LABELS, MEMBER_ROLE_LABELS, MEMBER_ROLE_COLORS, MilitaryRank } from '../../../../core/models/member.model';
 import { CommandWithDepth } from '../../../../core/models/command.model';
 import { buildCommandTree } from '../../../../core/utils/command-tree';
 
@@ -38,6 +38,8 @@ export class MemberList implements OnInit {
   ];
   readonly statusLabels = STATUS_LABELS;
   readonly rankLabels = RANK_LABELS;
+  readonly memberRoleLabels = MEMBER_ROLE_LABELS;
+  readonly memberRoleColors = MEMBER_ROLE_COLORS;
 
   readonly statusColors: Record<MemberStatus, string> = {
     ACTIVE: 'bg-green-100 text-green-700',
