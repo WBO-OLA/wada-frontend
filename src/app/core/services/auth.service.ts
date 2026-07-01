@@ -1,34 +1,39 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
-import { AuthResponse, LoginRequest, UserInfo } from '../models/auth.model';
+import { Observable } from 'rxjs';
+import { AuthResponse, LoginRequest, MfaRequiredResponse, OtpVerifyRequest, UserInfo } from '../models/auth.model';
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
 
 const TOKEN_KEY = 'moms_token';
-const USER_KEY = 'moms_user';
+const USER_KEY  = 'moms_user';
 const API = `${environment.apiUrl}/auth`;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http = inject(HttpClient);
+  private http   = inject(HttpClient);
   private router = inject(Router);
 
-  login(req: LoginRequest): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${API}/login`, req).pipe(
-      tap(res => {
-        if (res.data) {
-          localStorage.setItem(TOKEN_KEY, res.data.token);
-          const user: UserInfo = {
-            username: res.data.username,
-            role: res.data.role,
-            commandId: res.data.commandId ?? null,
-          };
-          localStorage.setItem(USER_KEY, JSON.stringify(user));
-        }
-      })
-    );
+  /** Step 1: validate credentials — returns mfaSessionId, no JWT yet. */
+  login(req: LoginRequest): Observable<ApiResponse<MfaRequiredResponse>> {
+    return this.http.post<ApiResponse<MfaRequiredResponse>>(`${API}/login`, req);
+  }
+
+  /** Step 2: validate OTP — returns JWT on success. */
+  verifyOtp(req: OtpVerifyRequest): Observable<ApiResponse<AuthResponse>> {
+    return this.http.post<ApiResponse<AuthResponse>>(`${API}/verify-otp`, req);
+  }
+
+  /** Persist token + user info after successful OTP verification. */
+  completeLogin(res: AuthResponse): void {
+    localStorage.setItem(TOKEN_KEY, res.token);
+    const user: UserInfo = {
+      username: res.username,
+      role: res.role,
+      commandId: res.commandId ?? null,
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
 
   logout(): void {

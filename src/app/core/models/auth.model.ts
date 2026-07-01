@@ -3,6 +3,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface MfaRequiredResponse {
+  mfaRequired: boolean;
+  mfaSessionId: string;
+  otpHint?: string | null;
+}
+
+export interface OtpVerifyRequest {
+  mfaSessionId: string;
+  otp: string;
+}
+
 export interface AuthResponse {
   token: string;
   username: string;

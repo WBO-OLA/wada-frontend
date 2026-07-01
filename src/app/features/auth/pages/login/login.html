@@ -73,78 +73,189 @@
         <p class="text-gray-500 text-sm mt-1">Military Organisation Management System</p>
       </div>
 
-      <!-- Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <div class="mb-6">
-          <h2 class="text-xl font-bold text-gray-900">Sign in</h2>
-          <p class="text-sm text-gray-500 mt-1">Enter your credentials to access the system</p>
-        </div>
-
-        @if (error()) {
-          <div class="mb-5 flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-            <span class="mt-0.5 flex-shrink-0">⚠</span>
-            <span>{{ error() }}</span>
-          </div>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
-            <input
-              formControlName="username"
-              type="text"
-              placeholder="Enter your username"
-              autocomplete="username"
-              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
-                     focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent
-                     transition placeholder:text-gray-400"
-            />
+      <!-- ─────────── STEP 1: Credentials ─────────── -->
+      @if (step() === 'credentials') {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Sign in</h2>
+            <p class="text-sm text-gray-500 mt-1">Enter your credentials to access the system</p>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-            <div class="relative">
+          @if (error()) {
+            <div class="mb-5 flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <span class="mt-0.5 flex-shrink-0">⚠</span>
+              <span>{{ error() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
               <input
-                formControlName="password"
-                [type]="showPassword() ? 'text' : 'password'"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-                class="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg text-sm
+                formControlName="username"
+                type="text"
+                placeholder="Enter your username"
+                autocomplete="username"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
                        focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent
                        transition placeholder:text-gray-400"
               />
-              <button type="button" (click)="showPassword.set(!showPassword())"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition text-sm select-none">
-                {{ showPassword() ? '🙈' : '👁' }}
-              </button>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <div class="relative">
+                <input
+                  formControlName="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  class="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg text-sm
+                         focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent
+                         transition placeholder:text-gray-400"
+                />
+                <button type="button" (click)="showPassword.set(!showPassword())"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition text-sm select-none">
+                  {{ showPassword() ? '🙈' : '👁' }}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              [disabled]="form.invalid || loading()"
+              class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-700 disabled:opacity-50
+                     disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg
+                     transition-colors mt-2"
+            >
+              @if (loading()) {
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Verifying…
+                </span>
+              } @else {
+                Continue
+              }
+            </button>
+
+          </form>
+        </div>
+      }
+
+      <!-- ─────────── STEP 2: OTP ─────────── -->
+      @if (step() === 'otp') {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+
+          <!-- Header with back button -->
+          <div class="flex items-center gap-3 mb-6">
+            <button type="button" (click)="goBack()"
+                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
+                    title="Back to sign in">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">Verification</h2>
+              <p class="text-sm text-gray-500 mt-0.5">Two-factor authentication</p>
             </div>
           </div>
 
-          <button
-            type="submit"
-            [disabled]="form.invalid || loading()"
-            class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-700 disabled:opacity-50
-                   disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg
-                   transition-colors mt-2"
-          >
-            @if (loading()) {
-              <span class="flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                Signing in…
-              </span>
-            } @else {
-              Sign In
-            }
-          </button>
+          <!-- Shield icon -->
+          <div class="flex justify-center mb-5">
+            <div class="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center">
+              <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04
+                     A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622
+                     0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+          </div>
 
-        </form>
+          <p class="text-sm text-gray-600 text-center mb-5">
+            Enter the 6-digit verification code sent to your registered contact.
+          </p>
+
+          <!-- Dev/mock hint box -->
+          @if (otpHint()) {
+            <div class="mb-5 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm text-center">
+              <p class="font-semibold text-xs uppercase tracking-wide mb-1">Demo — Code (not shown in production)</p>
+              <p class="text-2xl font-mono font-bold tracking-widest">{{ otpHint() }}</p>
+            </div>
+          }
+
+          @if (error()) {
+            <div class="mb-5 flex items-start gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <span class="mt-0.5 flex-shrink-0">⚠</span>
+              <span>{{ error() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="otpForm" (ngSubmit)="submitOtp()" class="space-y-4">
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Verification Code</label>
+              <input
+                formControlName="code"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                placeholder="000000"
+                autocomplete="one-time-code"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl
+                       font-mono tracking-widest focus:outline-none focus:ring-2
+                       focus:ring-slate-500 focus:border-transparent transition placeholder:text-gray-300"
+              />
+              <p class="mt-1.5 text-xs text-gray-400 text-center">Code expires in 5 minutes</p>
+            </div>
+
+            <button
+              type="submit"
+              [disabled]="otpForm.invalid || loading()"
+              class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-700 disabled:opacity-50
+                     disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg
+                     transition-colors"
+            >
+              @if (loading()) {
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Verifying…
+                </span>
+              } @else {
+                Verify & Sign In
+              }
+            </button>
+
+            <div class="text-center">
+              <button type="button" (click)="goBack()"
+                      class="text-xs text-gray-400 hover:text-gray-600 transition underline">
+                Back to sign in
+              </button>
+            </div>
+
+          </form>
+        </div>
+      }
+
+      <!-- Step indicator -->
+      <div class="flex items-center justify-center gap-2 mt-5">
+        <div class="w-2 h-2 rounded-full transition-colors"
+             [class.bg-slate-900]="step() === 'credentials'"
+             [class.bg-gray-300]="step() !== 'credentials'"></div>
+        <div class="w-2 h-2 rounded-full transition-colors"
+             [class.bg-slate-900]="step() === 'otp'"
+             [class.bg-gray-300]="step() !== 'otp'"></div>
       </div>
 
-      <p class="text-center text-xs text-gray-400 mt-6">
+      <p class="text-center text-xs text-gray-400 mt-4">
         Authorised personnel only · All activity is logged
       </p>
 
