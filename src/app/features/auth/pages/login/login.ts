@@ -119,11 +119,15 @@ export class LoginPage implements OnDestroy {
         this.mockPendingUsername, this.mockPendingPassword
       );
       if (credential) {
-        const mockToken = btoa(JSON.stringify({
+        // Build a pseudo-JWT (header.payload.sig) so isLoggedIn() can parse it
+        const header  = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+        const payload = btoa(JSON.stringify({
+          sub: credential.username,
           username: credential.username,
           role: credential.role,
           exp: Math.floor(Date.now() / 1000) + 3600,
         }));
+        const mockToken = `${header}.${payload}.mock`;
         localStorage.setItem('moms_token', mockToken);
         localStorage.setItem('moms_user', JSON.stringify({ username: credential.username, role: credential.role }));
         this.loading.set(false);
