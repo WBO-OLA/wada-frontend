@@ -36,8 +36,9 @@ export class LoginPage implements OnDestroy {
   loading  = signal(false);
   error    = signal('');
   showPassword = signal(false);
-  otpHint  = signal('');
-  countdown = signal(60);
+  otpHint      = signal('');
+  emailMasked  = signal('');
+  countdown    = signal(60);
 
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -86,6 +87,7 @@ export class LoginPage implements OnDestroy {
         if (res.data) {
           this.mfaSessionId = res.data.mfaSessionId;
           this.otpHint.set(res.data.otpHint ?? '');
+          this.emailMasked.set(res.data.emailMasked ?? '');
           this.loading.set(false);
           this.enterOtpStep();
         }
@@ -157,6 +159,7 @@ export class LoginPage implements OnDestroy {
     this.otpService.clear();
     this.error.set('');
     this.otpHint.set('');
+    this.emailMasked.set('');
     this.mfaSessionId = '';
     this.mockPendingUsername = '';
     this.mockPendingPassword = '';

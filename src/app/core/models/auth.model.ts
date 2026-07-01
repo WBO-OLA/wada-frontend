@@ -7,6 +7,7 @@ export interface MfaRequiredResponse {
   mfaRequired: boolean;
   mfaSessionId: string;
   otpHint?: string | null;
+  emailMasked?: string | null;
 }
 
 export interface OtpVerifyRequest {

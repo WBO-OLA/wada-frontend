@@ -177,9 +177,15 @@
             </div>
           </div>
 
-          <p class="text-sm text-gray-600 text-center mb-5">
-            Enter the 6-digit verification code sent to your registered contact.
-          </p>
+          @if (emailMasked()) {
+            <p class="text-sm text-gray-600 text-center mb-5">
+              A verification code was sent to <span class="font-semibold text-gray-800">{{ emailMasked() }}</span>
+            </p>
+          } @else {
+            <p class="text-sm text-gray-600 text-center mb-5">
+              Enter the 6-digit verification code sent to your registered email.
+            </p>
+          }
 
           <!-- Dev/mock hint box -->
           @if (otpHint()) {
