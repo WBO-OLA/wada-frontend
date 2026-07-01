@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -16,7 +16,7 @@ type Step = 'credentials' | 'otp';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class LoginPage {
+export class LoginPage implements OnDestroy {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private localCredentialService = inject(LocalCredentialService);
@@ -32,17 +32,20 @@ export class LoginPage {
     code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
   });
 
-  step    = signal<Step>('credentials');
-  loading = signal(false);
-  error   = signal('');
+  step     = signal<Step>('credentials');
+  loading  = signal(false);
+  error    = signal('');
   showPassword = signal(false);
-  otpHint = signal('');
+  otpHint  = signal('');
+  countdown = signal(60);
 
-  // Mock mode: hold credentials to re-validate after OTP
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Mock mode state
   private mockPendingUsername = '';
   private mockPendingPassword = '';
 
-  // Real backend mode: hold the session id returned by /api/auth/login
+  // Real backend state
   private mfaSessionId = '';
 
   features = [
@@ -51,6 +54,10 @@ export class LoginPage {
     { icon: '📦', label: 'Inventory System', desc: 'Items, warehouses, and stock levels' },
     { icon: '📊', label: 'Reporting & Analytics', desc: 'Zone-scoped reports and dashboards' },
   ];
+
+  ngOnDestroy(): void {
+    this.clearCountdown();
+  }
 
   submit(): void {
     if (this.form.invalid) return;
@@ -66,7 +73,7 @@ export class LoginPage {
         const code = this.otpService.generate(credential.username);
         this.otpHint.set(code);
         this.loading.set(false);
-        this.step.set('otp');
+        this.enterOtpStep();
       } else {
         this.error.set('Invalid credentials');
         this.loading.set(false);
@@ -74,14 +81,13 @@ export class LoginPage {
       return;
     }
 
-    // Real backend: Step 1 — credentials → get mfaSessionId
     this.authService.login({ username: username!, password: password! }).subscribe({
       next: (res) => {
         if (res.data) {
           this.mfaSessionId = res.data.mfaSessionId;
-          this.otpHint.set(res.data.otpHint ?? ''); // non-empty only when server hint is enabled (dev)
+          this.otpHint.set(res.data.otpHint ?? '');
           this.loading.set(false);
-          this.step.set('otp');
+          this.enterOtpStep();
         }
       },
       error: (err) => {
@@ -92,7 +98,7 @@ export class LoginPage {
   }
 
   submitOtp(): void {
-    if (this.otpForm.invalid) return;
+    if (this.otpForm.invalid || this.countdown() <= 0) return;
     this.loading.set(true);
     this.error.set('');
 
@@ -126,7 +132,6 @@ export class LoginPage {
       return;
     }
 
-    // Real backend: Step 2 — OTP → get JWT
     this.authService.verifyOtp({ mfaSessionId: this.mfaSessionId, otp: code }).subscribe({
       next: (res) => {
         if (res.data) {
@@ -142,6 +147,7 @@ export class LoginPage {
   }
 
   goBack(): void {
+    this.clearCountdown();
     this.step.set('credentials');
     this.otpForm.reset();
     this.otpService.clear();
@@ -150,5 +156,26 @@ export class LoginPage {
     this.mfaSessionId = '';
     this.mockPendingUsername = '';
     this.mockPendingPassword = '';
+  }
+
+  private enterOtpStep(): void {
+    this.countdown.set(60);
+    this.step.set('otp');
+    this.countdownTimer = setInterval(() => {
+      const next = this.countdown() - 1;
+      this.countdown.set(next);
+      if (next <= 0) {
+        this.clearCountdown();
+        this.error.set('Code expired. Go back and sign in again.');
+        this.otpService.clear();
+      }
+    }, 1000);
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownTimer !== null) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
   }
 }
